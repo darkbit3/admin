@@ -18,7 +18,7 @@ function clearTokens() {
 }
 
 async function refreshAccessToken() {
-  const refreshToken = sessionStorage.getItem('refresh_token')
+  const refreshToken = localStorage.getItem('refresh_token')
   if (!refreshToken) throw new Error('No refresh token')
 
   const res = await fetch(`${BASE_URL}/auth/refresh`, {
@@ -29,7 +29,7 @@ async function refreshAccessToken() {
 
   if (!res.ok) {
     clearTokens()
-    window.location.href = '/'
+    window.location.href = '/?expired=true'
     throw new Error('Session expired')
   }
 
@@ -57,7 +57,7 @@ async function request(path, options = {}, retry = true) {
       return request(path, options, false)
     } catch {
       clearTokens()
-      window.location.href = '/'
+      window.location.href = '/?expired=true'
       throw new Error('Session expired. Please log in again.')
     }
   }

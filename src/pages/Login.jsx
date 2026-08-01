@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { useNavigate, Link } from 'react-router-dom'
+import { useNavigate, useSearchParams, Link } from 'react-router-dom'
 import { ROUTES } from '../config/routes'
 import { authApi } from '../api/authApi'
 
@@ -10,6 +10,8 @@ export default function Login() {
   const [error, setError]               = useState('')
   const [loading, setLoading]           = useState(false)
   const navigate = useNavigate()
+  const [searchParams] = useSearchParams()
+  const sessionExpired = searchParams.get('expired') === 'true'
 
   const handlePhoneChange = (e) => {
     let raw = e.target.value.replace(/\D/g, '')
@@ -81,6 +83,12 @@ export default function Login() {
               <h2 className="text-xl font-bold" style={{ color: '#1C1C1C' }}>Sign In</h2>
               <p className="text-sm mt-1" style={{ color: '#8A7060' }}>Welcome back — enter your credentials.</p>
             </div>
+
+            {sessionExpired && !error && (
+              <div className="mb-5 bg-amber-50 border border-amber-200 text-amber-700 px-4 py-3 rounded-lg text-sm">
+                Your session expired. Please sign in again.
+              </div>
+            )}
 
             {error && (
               <div className="mb-5 bg-red-50 border border-red-200 text-red-600 px-4 py-3 rounded-lg text-sm">
