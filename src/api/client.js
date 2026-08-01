@@ -3,18 +3,18 @@
 const BASE_URL = import.meta.env.VITE_API_URL || 'https://backend-l34f.onrender.com/api'
 
 function getAccessToken() {
-  return sessionStorage.getItem('access_token')
+  return localStorage.getItem('access_token')
 }
 
 function setTokens(accessToken, refreshToken) {
-  sessionStorage.setItem('access_token', accessToken)
-  if (refreshToken) sessionStorage.setItem('refresh_token', refreshToken)
+  localStorage.setItem('access_token', accessToken)
+  if (refreshToken) localStorage.setItem('refresh_token', refreshToken)
 }
 
 function clearTokens() {
-  sessionStorage.removeItem('access_token')
-  sessionStorage.removeItem('refresh_token')
-  sessionStorage.removeItem('admin_auth')
+  localStorage.removeItem('access_token')
+  localStorage.removeItem('refresh_token')
+  localStorage.removeItem('admin_auth')
 }
 
 async function refreshAccessToken() {

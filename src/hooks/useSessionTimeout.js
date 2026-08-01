@@ -21,7 +21,7 @@ export function useSessionTimeout({ onWarning, onLogout }) {
 
   const logout = useCallback(() => {
     clearTimers()
-    sessionStorage.removeItem('admin_auth')
+    localStorage.removeItem('admin_auth')
     onLogout?.()
     navigate(ROUTES.LOGIN, { replace: true })
   }, [clearTimers, navigate, onLogout])
@@ -39,7 +39,7 @@ export function useSessionTimeout({ onWarning, onLogout }) {
   }, [clearTimers, logout, onWarning])
 
   useEffect(() => {
-    const isAuth = sessionStorage.getItem('admin_auth') === 'true'
+    const isAuth = localStorage.getItem('admin_auth') === 'true'
     if (!isAuth) return
 
     // Start timers

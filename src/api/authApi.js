@@ -7,12 +7,12 @@ export const authApi = {
       throw new Error('Invalid response from server. Please try again.')
     }
     setTokens(res.data.accessToken, res.data.refreshToken)
-    sessionStorage.setItem('admin_auth', 'true')
+    localStorage.setItem('admin_auth', 'true')
     return res.data.admin
   },
 
   async logout() {
-    const refreshToken = sessionStorage.getItem('refresh_token')
+    const refreshToken = localStorage.getItem('refresh_token')
     try {
       await api.post('/auth/logout', { refreshToken })
     } finally {

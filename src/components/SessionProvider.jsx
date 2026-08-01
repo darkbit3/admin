@@ -17,7 +17,7 @@ export default function SessionProvider({ children }) {
 
   const handleLogoutNow = () => {
     setShowWarning(false)
-    sessionStorage.removeItem('admin_auth')
+    localStorage.removeItem('admin_auth')
     // navigation is handled by useSessionTimeout's logout fn
     window.location.href = '/'
   }
