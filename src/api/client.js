@@ -58,16 +58,17 @@ async function request(path, options = {}, retry = true) {
     } catch {
       clearTokens()
       window.location.href = '/'
-      return
+      throw new Error('Session expired. Please log in again.')
     }
   }
 
   const data = await res.json()
 
   if (!res.ok) {
-    const err = new Error(data.message || 'Request failed')
-    err.status  = res.status
-    err.errors  = data.errors
+    const msg = data?.message || `Request failed (${res.status})`
+    const err = new Error(msg)
+    err.status = res.status
+    err.errors = data?.errors
     throw err
   }
 

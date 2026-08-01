@@ -2,10 +2,13 @@ import { api, setTokens, clearTokens } from './client'
 
 export const authApi = {
   async login(phone, password) {
-    const data = await api.post('/auth/login', { phone, password })
-    setTokens(data.data.accessToken, data.data.refreshToken)
+    const res = await api.post('/auth/login', { phone, password })
+    if (!res?.data?.accessToken) {
+      throw new Error('Invalid response from server. Please try again.')
+    }
+    setTokens(res.data.accessToken, res.data.refreshToken)
     sessionStorage.setItem('admin_auth', 'true')
-    return data.data.admin
+    return res.data.admin
   },
 
   async logout() {
