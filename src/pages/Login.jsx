@@ -1,5 +1,5 @@
-import { useState } from 'react'
-import { useNavigate, useSearchParams, Link } from 'react-router-dom'
+import { useState, useEffect } from 'react'
+import { useNavigate, Link } from 'react-router-dom'
 import { ROUTES } from '../config/routes'
 import { authApi } from '../api/authApi'
 
@@ -9,9 +9,17 @@ export default function Login() {
   const [showPassword, setShowPassword] = useState(false)
   const [error, setError]               = useState('')
   const [loading, setLoading]           = useState(false)
+  const [sessionExpired, setSessionExpired] = useState(false)
   const navigate = useNavigate()
-  const [searchParams] = useSearchParams()
-  const sessionExpired = searchParams.get('expired') === 'true'
+
+  // Detect #expired hash set by client.js / useSessionTimeout on forced logout
+  useEffect(() => {
+    if (window.location.hash === '#expired') {
+      setSessionExpired(true)
+      // Clean the hash immediately so it doesn't persist on refresh
+      window.history.replaceState(null, '', window.location.pathname)
+    }
+  }, [])
 
   const handlePhoneChange = (e) => {
     let raw = e.target.value.replace(/\D/g, '')
@@ -31,6 +39,7 @@ export default function Login() {
       return
     }
     setError('')
+    setSessionExpired(false)
     setLoading(true)
     try {
       await authApi.login(fullPhone, password)

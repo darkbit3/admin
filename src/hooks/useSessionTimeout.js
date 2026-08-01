@@ -1,6 +1,4 @@
 import { useEffect, useRef, useCallback } from 'react'
-import { useNavigate } from 'react-router-dom'
-import { ROUTES } from '../config/routes'
 
 // 15 minutes idle → auto logout
 // 2 minutes before that → show warning
@@ -10,7 +8,6 @@ const WARNING_MS = 13 * 60 * 1000       // warn at 13 min (2 min before logout)
 const ACTIVITY_EVENTS = ['mousemove', 'mousedown', 'keydown', 'touchstart', 'scroll', 'click']
 
 export function useSessionTimeout({ onWarning, onLogout }) {
-  const navigate = useNavigate()
   const logoutTimer = useRef(null)
   const warningTimer = useRef(null)
 
@@ -21,10 +18,13 @@ export function useSessionTimeout({ onWarning, onLogout }) {
 
   const logout = useCallback(() => {
     clearTimers()
+    localStorage.removeItem('access_token')
+    localStorage.removeItem('refresh_token')
     localStorage.removeItem('admin_auth')
     onLogout?.()
-    navigate(ROUTES.LOGIN, { replace: true })
-  }, [clearTimers, navigate, onLogout])
+    // Use hash so the login page can detect expiry without query param sticking
+    window.location.replace('/#expired')
+  }, [clearTimers, onLogout])
 
   const resetTimers = useCallback(() => {
     clearTimers()

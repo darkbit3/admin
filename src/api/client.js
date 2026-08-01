@@ -29,7 +29,8 @@ async function refreshAccessToken() {
 
   if (!res.ok) {
     clearTokens()
-    window.location.href = '/?expired=true'
+    // Use replace so back button doesn't loop
+    window.location.replace('/#expired')
     throw new Error('Session expired')
   }
 
@@ -57,7 +58,7 @@ async function request(path, options = {}, retry = true) {
       return request(path, options, false)
     } catch {
       clearTokens()
-      window.location.href = '/?expired=true'
+      window.location.replace('/#expired')
       throw new Error('Session expired. Please log in again.')
     }
   }
