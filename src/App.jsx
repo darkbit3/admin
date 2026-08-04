@@ -1,7 +1,6 @@
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
 import { ROUTES } from './config/routes'
 import ProtectedRoute from './components/ProtectedRoute'
-import SessionProvider from './components/SessionProvider'
 import Login from './pages/Login'
 import Dashboard from './pages/Dashboard'
 import Manage from './pages/Manage'
@@ -15,14 +14,12 @@ export default function App() {
         <Route path={ROUTES.LOGIN} element={<Login />} />
         <Route path={ROUTES.FORGOT_PASSWORD} element={<ForgotPassword />} />
 
-        {/* Protected routes — wrapped with session timeout */}
+        {/* Protected routes */}
         <Route
           path={ROUTES.DASHBOARD}
           element={
             <ProtectedRoute>
-              <SessionProvider>
-                <Dashboard />
-              </SessionProvider>
+              <Dashboard />
             </ProtectedRoute>
           }
         />
@@ -30,9 +27,7 @@ export default function App() {
           path={ROUTES.MANAGE}
           element={
             <ProtectedRoute>
-              <SessionProvider>
-                <Manage />
-              </SessionProvider>
+              <Manage />
             </ProtectedRoute>
           }
         />

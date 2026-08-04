@@ -29,9 +29,8 @@ async function refreshAccessToken() {
 
   if (!res.ok) {
     clearTokens()
-    // Use replace so back button doesn't loop
-    window.location.replace('/#expired')
-    return Promise.reject(new Error('Session expired'))
+    window.location.replace('/')
+    throw new Error('Session ended')
   }
 
   const data = await res.json()
@@ -51,16 +50,15 @@ async function request(path, options = {}, retry = true) {
     },
   })
 
-  // Token expired — try refresh once
+  // Token expired — try silent refresh once
   if (res.status === 401 && retry) {
     try {
       await refreshAccessToken()
       return request(path, options, false)
     } catch {
       clearTokens()
-      window.location.replace('/#expired')
-      // Don't throw — the redirect will happen and Login will read the hash
-      return Promise.reject(new Error('Session expired'))
+      window.location.replace('/')
+      return new Promise(() => {}) // never resolves — page is redirecting
     }
   }
 
@@ -78,11 +76,11 @@ async function request(path, options = {}, retry = true) {
 }
 
 export const api = {
-  get:    (path)         => request(path, { method: 'GET' }),
-  post:   (path, body)   => request(path, { method: 'POST',   body: JSON.stringify(body) }),
-  put:    (path, body)   => request(path, { method: 'PUT',    body: JSON.stringify(body) }),
-  patch:  (path, body)   => request(path, { method: 'PATCH',  body: JSON.stringify(body) }),
-  delete: (path)         => request(path, { method: 'DELETE' }),
+  get:    (path)       => request(path, { method: 'GET' }),
+  post:   (path, body) => request(path, { method: 'POST',   body: JSON.stringify(body) }),
+  put:    (path, body) => request(path, { method: 'PUT',    body: JSON.stringify(body) }),
+  patch:  (path, body) => request(path, { method: 'PATCH',  body: JSON.stringify(body) }),
+  delete: (path)       => request(path, { method: 'DELETE' }),
 }
 
 export { setTokens, clearTokens, getAccessToken }
