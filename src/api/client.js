@@ -31,7 +31,7 @@ async function refreshAccessToken() {
     clearTokens()
     // Use replace so back button doesn't loop
     window.location.replace('/#expired')
-    throw new Error('Session expired')
+    return Promise.reject(new Error('Session expired'))
   }
 
   const data = await res.json()
@@ -59,7 +59,8 @@ async function request(path, options = {}, retry = true) {
     } catch {
       clearTokens()
       window.location.replace('/#expired')
-      throw new Error('Session expired. Please log in again.')
+      // Don't throw — the redirect will happen and Login will read the hash
+      return Promise.reject(new Error('Session expired'))
     }
   }
 
