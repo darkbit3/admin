@@ -365,30 +365,29 @@ export default function Manage() {
     <Layout>
 
       {/* ── Page Header ────────────────────────────────────────────────── */}
-      <div className="mb-6 bg-white rounded-xl shadow-sm px-6 py-5 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-        <div>
-          <h1 className="text-2xl font-bold text-gray-800">Manage Users</h1>
-          <p className="text-gray-400 text-sm mt-0.5">
-            {users.length} total · {users.filter(u => u.status === 'Active').length} active
-            {selCount > 0 && <span className="ml-2 text-blue-500 font-medium">· {selCount} selected</span>}
-          </p>
-        </div>
-        <div className="flex flex-wrap gap-2">
-
+      <div className="mb-6 bg-white rounded-xl shadow-sm px-4 sm:px-6 py-4 sm:py-5 flex flex-col gap-4">
+        <div className="flex items-center justify-between">
+          <div>
+            <h1 className="text-xl sm:text-2xl font-bold text-gray-800">Manage Users</h1>
+            <p className="text-gray-400 text-sm mt-0.5">
+              {users.length} total · {users.filter(u => u.status === 'Active').length} active
+              {selCount > 0 && <span className="ml-2 text-blue-500 font-medium">· {selCount} selected</span>}
+            </p>
+          </div>
           {/* Reload */}
           <button onClick={fetchUsers} disabled={loading}
             title="Refresh table"
-            className="flex items-center gap-1.5 px-4 py-2 text-sm font-medium bg-gray-100 hover:bg-gray-200 text-gray-600 rounded-lg border border-gray-200 transition-colors disabled:opacity-50">
+            className="flex items-center gap-1.5 px-3 py-2 text-sm font-medium bg-gray-100 hover:bg-gray-200 text-gray-600 rounded-lg border border-gray-200 transition-colors disabled:opacity-50">
             <svg xmlns="http://www.w3.org/2000/svg"
               className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`}
               fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
               <path strokeLinecap="round" strokeLinejoin="round"
                 d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
             </svg>
-            {loading ? 'Loading...' : 'Reload'}
+            <span className="hidden sm:inline">{loading ? 'Loading...' : 'Reload'}</span>
           </button>
-
-          {/* Add — always enabled */}
+        </div>
+        <div className="flex flex-wrap gap-2">
           <button onClick={openAdd}
             className="flex items-center gap-1.5 px-4 py-2 text-sm font-medium bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors">
             <IconAdd /> Add User
@@ -442,7 +441,7 @@ export default function Manage() {
 
       {/* ── Table ──────────────────────────────────────────────────────── */}
       <div className="bg-white rounded-xl shadow-sm overflow-x-auto">
-        <table className="w-full text-sm">
+        <table className="w-full text-sm min-w-[700px]">
           <thead className="bg-gray-50 border-b border-gray-200">
             <tr>
               <th className="px-4 py-3 w-10">

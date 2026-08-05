@@ -60,9 +60,9 @@ export default function Dashboard() {
   return (
     <Layout>
       {/* Header */}
-      <div className="mb-6 flex items-center justify-between">
+      <div className="mb-6 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
         <div>
-          <h1 className="text-2xl font-bold" style={{ color: '#1C1C1C', fontFamily: 'Georgia, serif' }}>Dashboard</h1>
+          <h1 className="text-xl sm:text-2xl font-bold" style={{ color: '#1C1C1C', fontFamily: 'Georgia, serif' }}>Dashboard</h1>
           <p className="text-sm mt-1" style={{ color: '#8A7060' }}>Welcome back, Admin</p>
         </div>
         <button onClick={fetchStats} disabled={loading}
@@ -89,7 +89,7 @@ export default function Dashboard() {
       )}
 
       {/* Stats Cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4 mb-8">
+      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3 sm:gap-4 mb-8">
         {cardDefs.map((card) => (
           <div key={card.key}
             className="bg-white rounded-xl p-5 flex items-center gap-4"
