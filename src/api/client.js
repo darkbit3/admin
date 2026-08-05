@@ -1,6 +1,6 @@
 // Base API client — handles auth headers, token refresh, and errors
 
-const BASE_URL = import.meta.env.VITE_API_URL || 'https://backend-l34f.onrender.com/api'
+const BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api'
 
 function getAccessToken() {
   return localStorage.getItem('access_token')

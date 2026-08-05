@@ -2,6 +2,7 @@ import { useState, useRef, useEffect, useCallback } from 'react'
 import Layout from '../components/Layout'
 import { manageApi } from '../api/manageApi'
 import { useToast } from '../context/ToastContext'
+import { useAuth } from '../context/AuthContext'
 
 // ── Icons ──────────────────────────────────────────────────────────────────
 const EyeOn = () => (
@@ -211,6 +212,7 @@ function StatusBadge({ status }) {
 // ─────────────────────────────────────────────────────────────────────────
 export default function Manage() {
   const toast = useToast()
+  const { admin } = useAuth()
   const [users, setUsers]             = useState([])
   const [loading, setLoading]         = useState(true)
   const [apiError, setApiError]       = useState('')
@@ -388,6 +390,7 @@ export default function Manage() {
         <div>
           <h1 className="text-xl sm:text-2xl font-bold" style={{ color: '#1C1C1C', fontFamily: 'Georgia, serif' }}>Manage Users</h1>
           <p className="text-sm mt-0.5" style={{ color: '#8A7060' }}>
+            {admin?.name && <span style={{ color: '#C8A96E', fontWeight: 600 }}>{admin.name} · </span>}
             {users.length} total · {users.filter(u => u.status === 'Active').length} active
             {selCount > 0 && <span className="ml-2 font-semibold" style={{ color: '#C8A96E' }}>· {selCount} selected</span>}
           </p>
@@ -617,43 +620,6 @@ export default function Manage() {
                     <td className="px-4 py-4">
                       <div className="flex items-center gap-1.5">
                         <span className="text-gray-500 font-mono text-xs tracking-widest">
-                          {visiblePwd[user.id] ? (revealedPwd[user.id] || '…') : '••••••••'}
-                        </span>
-                        <button type="button" onClick={e => { e.stopPropagation(); toggleRowPwd(user.id) }}
-                          className="text-gray-400 hover:text-gray-600 transition-colors">
-                          {visiblePwd[user.id] ? <EyeOff /> : <EyeOn />}
-                        </button>
-                      </div>
-                    </td>
-                    <td className="px-4 py-4"><StatusBadge status={user.status} /></td>
-                    <td className="px-4 py-4" onClick={e => e.stopPropagation()}>
-                      <div className="flex items-center gap-1.5 flex-wrap">
-                        <button onClick={() => openEdit(user.id)}
-                          className="flex items-center gap-1 px-2.5 py-1.5 text-xs font-medium text-indigo-600 bg-indigo-50 hover:bg-indigo-100 rounded-lg transition-colors">
-                          <IconEdit /> Edit
-                        </button>
-                        <button onClick={() => openDelete([user.id])}
-                          className="flex items-center gap-1 px-2.5 py-1.5 text-xs font-medium text-red-500 bg-red-50 hover:bg-red-100 rounded-lg transition-colors">
-                          <IconDelete /> Delete
-                        </button>
-                        <button onClick={() => handleRowToggle(user)}
-                          className={`flex items-center gap-1 px-2.5 py-1.5 text-xs font-medium rounded-lg transition-colors ${user.status === 'Active' ? 'text-green-600 bg-green-50 hover:bg-green-100' : 'text-gray-500 bg-gray-100 hover:bg-gray-200'}`}>
-                          {user.status === 'Active' ? <IconToggleOn /> : <IconToggleOff />}
-                          {user.status === 'Active' ? 'Active' : 'Inactive'}
-                        </button>
-                        <button onClick={() => openReset([user.id])}
-                          className="flex items-center gap-1 px-2.5 py-1.5 text-xs font-medium text-yellow-600 bg-yellow-50 hover:bg-yellow-100 rounded-lg transition-colors">
-                          <IconForgot /> Reset
-                        </button>
-                      </div>
-                    </td>
-                  </tr>
-                )
-              })
-            )}
-          </tbody>
-        </table>
-      </div>
                           {visiblePwd[user.id] ? (revealedPwd[user.id] || '…') : '••••••••'}
                         </span>
                         <button type="button" onClick={e => { e.stopPropagation(); toggleRowPwd(user.id) }}

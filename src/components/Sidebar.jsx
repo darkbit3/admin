@@ -1,6 +1,7 @@
 import { NavLink, useNavigate } from 'react-router-dom'
 import { ROUTES } from '../config/routes'
 import { authApi } from '../api/authApi'
+import { useAuth } from '../context/AuthContext'
 
 // ── Icons ──────────────────────────────────────────────────────────────────
 const IconDashboard = () => (
@@ -18,14 +19,52 @@ const IconLogout = () => (
     <path strokeLinecap="round" strokeLinejoin="round" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
   </svg>
 )
+const IconUser = () => (
+  <svg xmlns="http://www.w3.org/2000/svg" className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+    <path strokeLinecap="round" strokeLinejoin="round" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+  </svg>
+)
 
 const navItems = [
   { label: 'Dashboard', path: ROUTES.DASHBOARD, icon: <IconDashboard /> },
   { label: 'Manage',    path: ROUTES.MANAGE,    icon: <IconManage /> },
 ]
 
+// ── Admin profile card ─────────────────────────────────────────────────────
+function AdminProfile({ admin }) {
+  if (!admin) return null
+  const initials = (admin.name || admin.phone || 'A')
+    .split(' ').map(w => w[0]).join('').toUpperCase().slice(0, 2)
+
+  return (
+    <div
+      className="mx-3 mb-4 px-3 py-3 rounded-xl flex items-center gap-3"
+      style={{ backgroundColor: 'rgba(200,169,110,0.08)', border: '1px solid rgba(200,169,110,0.18)' }}
+    >
+      {/* Avatar */}
+      <div
+        className="w-9 h-9 rounded-full flex items-center justify-center flex-shrink-0 text-sm font-bold"
+        style={{ backgroundColor: '#C8A96E', color: '#1C1C1C' }}
+      >
+        {initials}
+      </div>
+      <div className="min-w-0">
+        <p className="text-sm font-semibold truncate" style={{ color: '#F5EDE0' }}>
+          {admin.name || 'Admin'}
+        </p>
+        <p className="text-xs truncate" style={{ color: '#C8A96E' }}>
+          {admin.phone || ''}
+        </p>
+      </div>
+      <div className="flex-shrink-0" style={{ color: '#C8A96E' }}>
+        <IconUser />
+      </div>
+    </div>
+  )
+}
+
 // ── Desktop sidebar content ────────────────────────────────────────────────
-function SidebarContent({ onNavClick, onLogout }) {
+function SidebarContent({ admin, onNavClick, onLogout }) {
   return (
     <div className="flex flex-col h-full">
       {/* Brand */}
@@ -62,6 +101,9 @@ function SidebarContent({ onNavClick, onLogout }) {
         ))}
       </nav>
 
+      {/* Admin profile card */}
+      <AdminProfile admin={admin} />
+
       {/* Logout */}
       <div className="px-3 py-4" style={{ borderTop: '1px solid rgba(200,169,110,0.2)' }}>
         <button
@@ -81,9 +123,11 @@ function SidebarContent({ onNavClick, onLogout }) {
 
 export default function Sidebar() {
   const navigate = useNavigate()
+  const { admin, clearAdmin } = useAuth()
 
   const handleLogout = async () => {
     await authApi.logout()
+    clearAdmin()
     navigate(ROUTES.LOGIN)
   }
 
@@ -94,7 +138,7 @@ export default function Sidebar() {
         className="hidden lg:flex flex-col w-64 flex-shrink-0"
         style={{ backgroundColor: '#1C1C1C', minHeight: '100vh' }}
       >
-        <SidebarContent onNavClick={() => {}} onLogout={handleLogout} />
+        <SidebarContent admin={admin} onNavClick={() => {}} onLogout={handleLogout} />
       </aside>
 
       {/* ── Mobile: fixed top header bar ── */}
@@ -102,12 +146,17 @@ export default function Sidebar() {
         className="lg:hidden fixed top-0 left-0 right-0 z-40 flex items-center justify-between px-4"
         style={{ backgroundColor: '#1C1C1C', borderBottom: '1px solid rgba(200,169,110,0.2)', height: '56px' }}
       >
-        {/* Logo + name */}
+        {/* Logo + admin name */}
         <div className="flex items-center gap-3">
           <div className="w-8 h-8 rounded-lg overflow-hidden flex-shrink-0" style={{ backgroundColor: '#C8A96E' }}>
             <img src="/logo.png" alt="Shmeta" className="w-full h-full object-cover" />
           </div>
-          <span className="text-base font-bold" style={{ color: '#F5EDE0', fontFamily: 'Georgia, serif' }}>Shmeta</span>
+          <div>
+            <span className="text-base font-bold" style={{ color: '#F5EDE0', fontFamily: 'Georgia, serif' }}>Shmeta</span>
+            {admin?.name && (
+              <p className="text-xs leading-none" style={{ color: '#C8A96E' }}>{admin.name}</p>
+            )}
+          </div>
         </div>
 
         {/* Logout icon button */}

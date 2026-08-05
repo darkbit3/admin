@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react'
 import Layout from '../components/Layout'
 import { manageApi } from '../api/manageApi'
 import { useToast } from '../context/ToastContext'
+import { useAuth } from '../context/AuthContext'
 
 // ── Stat card definitions ─────────────────────────────────────────────────
 const cardDefs = [
@@ -68,6 +69,7 @@ const IconRefresh = ({ spinning }) => (
 
 export default function Dashboard() {
   const toast = useToast()
+  const { admin } = useAuth()
   const [stats, setStats]     = useState(null)
   const [loading, setLoading] = useState(true)
   const [error, setError]     = useState('')
@@ -101,7 +103,7 @@ export default function Dashboard() {
             Dashboard
           </h1>
           <p className="text-sm mt-0.5" style={{ color: '#8A7060' }}>
-            Welcome back, Admin
+            Welcome back, <span style={{ color: '#C8A96E', fontWeight: 600 }}>{admin?.name || admin?.phone || 'Admin'}</span>
           </p>
         </div>
 

@@ -1,7 +1,8 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useNavigate, Link } from 'react-router-dom'
 import { ROUTES } from '../config/routes'
 import { authApi } from '../api/authApi'
+import { useAuth } from '../context/AuthContext'
 
 export default function Login() {
   const [phone, setPhone]         = useState('')
@@ -10,6 +11,13 @@ export default function Login() {
   const [error, setError]         = useState('')
   const [loading, setLoading]     = useState(false)
   const navigate = useNavigate()
+  const { refreshAdmin } = useAuth()
+
+  useEffect(() => {
+    // 🚀 Silent warm-up ping on mount so Render free-tier server wakes up immediately
+    const BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api'
+    fetch(`${BASE_URL}/health`).catch(() => {})
+  }, [])
 
   const handlePhoneChange = (e) => {
     let raw = e.target.value.replace(/\D/g, '')
@@ -32,6 +40,7 @@ export default function Login() {
     setLoading(true)
     try {
       await authApi.login(fullPhone, password)
+      await refreshAdmin()
       navigate(ROUTES.DASHBOARD)
     } catch (err) {
       setError(err.message || 'Invalid phone number or password')
