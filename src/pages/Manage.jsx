@@ -1,6 +1,7 @@
 import { useState, useRef, useEffect, useCallback } from 'react'
 import Layout from '../components/Layout'
 import { manageApi } from '../api/manageApi'
+import { useToast } from '../context/ToastContext'
 
 // ── Icons ──────────────────────────────────────────────────────────────────
 const EyeOn = () => (
@@ -209,6 +210,7 @@ function StatusBadge({ status }) {
 
 // ─────────────────────────────────────────────────────────────────────────
 export default function Manage() {
+  const toast = useToast()
   const [users, setUsers]             = useState([])
   const [loading, setLoading]         = useState(true)
   const [apiError, setApiError]       = useState('')
@@ -242,9 +244,12 @@ export default function Manage() {
     try {
       const data = await manageApi.getAll()
       setUsers(data); setRevealedPwd({}); setVisiblePwd({})
-    } catch (err) { setApiError(err.message || 'Failed to load users') }
+    } catch (err) {
+      setApiError(err.message || 'Failed to load users')
+      toast.error(err.message || 'Failed to load users')
+    }
     finally { setLoading(false) }
-  }, [])
+  }, [toast])
 
   useEffect(() => { fetchUsers() }, [fetchUsers])
 
@@ -274,6 +279,7 @@ export default function Manage() {
       const { confirmPassword, ...rest } = addForm
       await manageApi.create({ ...rest, phone: '0' + addForm.phone })
       await fetchUsers(); setShowAddModal(false)
+      toast.success('User created successfully')
     } catch (err) { setAddErrors({ phone: err.message }) }
   }
 
@@ -292,7 +298,8 @@ export default function Manage() {
     try {
       await manageApi.update(editTarget.id, { name: editForm.name, phone: '0' + editForm.phone, role: editForm.role, accountType: editForm.accountType, freeUntil: editForm.freeUntil })
       await fetchUsers(); setShowEditModal(false)
-    } catch (err) { alert(err.message) }
+      toast.success('User updated successfully')
+    } catch (err) { toast.error(err.message) }
   }
 
   // ── Delete ─────────────────────────────────────────────────────────────
@@ -313,7 +320,8 @@ export default function Manage() {
     try {
       await manageApi.bulkDelete(confirmDelete.ids)
       await fetchUsers(); setSelected([]); setConfirmDelete(null)
-    } catch (err) { alert(err.message) }
+      toast.success(`${confirmDelete.ids.length} user${confirmDelete.ids.length > 1 ? 's' : ''} deleted`)
+    } catch (err) { toast.error(err.message) }
     finally { setDeleteLoading(false) }
   }
 
@@ -321,8 +329,12 @@ export default function Manage() {
   const handleToggleActiveSelected = async () => {
     if (selCount === 0) return
     const allActive = selected.every(id => users.find(u => u.id === id)?.status === 'Active')
-    try { await manageApi.bulkStatus(selected, allActive ? 'Inactive' : 'Active'); await fetchUsers() }
-    catch (err) { alert(err.message) }
+    const newStatus = allActive ? 'Inactive' : 'Active'
+    try {
+      await manageApi.bulkStatus(selected, newStatus); await fetchUsers()
+      toast.success(`${selected.length} user${selected.length > 1 ? 's' : ''} set to ${newStatus}`)
+    }
+    catch (err) { toast.error(err.message) }
   }
   const selectedAllActive = selCount > 0 && selected.every(id => users.find(u => u.id === id)?.status === 'Active')
 
@@ -343,7 +355,8 @@ export default function Manage() {
     try {
       await manageApi.bulkResetPassword(resetTargetIds, resetForm.password)
       await fetchUsers(); setShowResetModal(false); setSelected([])
-    } catch (err) { alert(err.message) }
+      toast.success(`Password reset for ${resetTargetIds.length} user${resetTargetIds.length > 1 ? 's' : ''}`)
+    } catch (err) { toast.error(err.message) }
   }
 
   // ── Per-row password reveal ────────────────────────────────────────────
@@ -359,10 +372,12 @@ export default function Manage() {
 
   // ── Per-row status toggle ──────────────────────────────────────────────
   const handleRowToggle = async (user) => {
+    const newStatus = user.status === 'Active' ? 'Inactive' : 'Active'
     try {
-      await manageApi.updateStatus(user.id, user.status === 'Active' ? 'Inactive' : 'Active')
+      await manageApi.updateStatus(user.id, newStatus)
       await fetchUsers()
-    } catch (err) { alert(err.message) }
+      toast.success(`${user.name} set to ${newStatus}`)
+    } catch (err) { toast.error(err.message) }
   }
 
   return (

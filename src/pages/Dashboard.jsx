@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import Layout from '../components/Layout'
 import { manageApi } from '../api/manageApi'
+import { useToast } from '../context/ToastContext'
 
 // ── Stat card definitions ─────────────────────────────────────────────────
 const cardDefs = [
@@ -66,6 +67,7 @@ const IconRefresh = ({ spinning }) => (
 )
 
 export default function Dashboard() {
+  const toast = useToast()
   const [stats, setStats]     = useState(null)
   const [loading, setLoading] = useState(true)
   const [error, setError]     = useState('')
@@ -76,14 +78,16 @@ export default function Dashboard() {
     try {
       const data = await manageApi.getStats()
       setStats(data)
-    } catch {
-      setError('Failed to load stats')
+    } catch (err) {
+      const msg = err.message || 'Failed to load stats'
+      setError(msg)
+      toast.error(msg)
     } finally {
       setLoading(false)
     }
   }
 
-  useEffect(() => { fetchStats() }, [])
+  useEffect(() => { fetchStats() }, []) // eslint-disable-line react-hooks/exhaustive-deps
 
   return (
     <Layout>
