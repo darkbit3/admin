@@ -14,7 +14,7 @@ export default function Login() {
   const { refreshAdmin } = useAuth()
 
   useEffect(() => {
-    // 🚀 Silent warm-up ping on mount so Render free-tier server wakes up immediately
+    // Ping server on mount to verify connection
     const BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api'
     fetch(`${BASE_URL}/health`).catch(() => {})
   }, [])
