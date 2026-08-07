@@ -134,7 +134,7 @@ export default function Dashboard() {
       )}
 
       {/* ── Stats grid: 2 col mobile → 3 col sm → 5 col lg ─────────── */}
-      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3 sm:gap-4">
+      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3 sm:gap-4 mb-6">
         {cardDefs.map((card) => (
           <div
             key={card.key}
@@ -166,6 +166,139 @@ export default function Dashboard() {
             </div>
           </div>
         ))}
+      </div>
+
+      {/* ── Owner Account Details Table ───────────────────────────────── */}
+      <div className="bg-white rounded-xl overflow-hidden mb-6"
+        style={{ border: '1px solid #E8D9C5', boxShadow: '0 1px 4px rgba(0,0,0,0.06)' }}
+      >
+        {/* Table header */}
+        <div className="px-5 py-4 flex items-center justify-between" style={{ borderBottom: '1px solid #E8D9C5' }}>
+          <div>
+            <h2 className="text-base font-bold" style={{ color: '#1C1C1C' }}>Owner Account Details</h2>
+            <p className="text-xs mt-0.5" style={{ color: '#8A7060' }}>
+              Cashiers &amp; cutters assigned to each Manufacturer / Reseller
+            </p>
+          </div>
+          <span
+            className="text-xs font-semibold px-2.5 py-1 rounded-full"
+            style={{ backgroundColor: 'rgba(200,169,110,0.15)', color: '#9A7040' }}
+          >
+            {stats?.ownersBreakdown?.length ?? 0} Owners
+          </span>
+        </div>
+
+        {/* Table */}
+        <div className="overflow-x-auto">
+          <table className="w-full text-sm text-left">
+            <thead style={{ backgroundColor: '#FBF5EC' }}>
+              <tr>
+                {['Owner Name', 'Phone', 'Role', 'Account', 'Cashiers', 'Cutters', 'Status'].map(h => (
+                  <th
+                    key={h}
+                    className={`px-5 py-3 text-xs font-semibold uppercase tracking-wider ${h === 'Cashiers' || h === 'Cutters' ? 'text-center' : h === 'Status' ? 'text-right' : ''}`}
+                    style={{ color: '#6A5040' }}
+                  >
+                    {h}
+                  </th>
+                ))}
+              </tr>
+            </thead>
+            <tbody>
+              {loading ? (
+                <tr>
+                  <td colSpan={7} className="text-center py-10" style={{ color: '#B0A090' }}>
+                    Loading owner details…
+                  </td>
+                </tr>
+              ) : !stats?.ownersBreakdown || stats.ownersBreakdown.length === 0 ? (
+                <tr>
+                  <td colSpan={7} className="text-center py-10" style={{ color: '#B0A090' }}>
+                    No owner accounts created yet
+                  </td>
+                </tr>
+              ) : (
+                stats.ownersBreakdown.map((owner, idx) => (
+                  <tr
+                    key={owner.id}
+                    style={{
+                      borderTop: idx > 0 ? '1px solid #F0E8DC' : 'none',
+                      transition: 'background 0.15s',
+                    }}
+                    onMouseEnter={e => e.currentTarget.style.backgroundColor = '#FDF8F2'}
+                    onMouseLeave={e => e.currentTarget.style.backgroundColor = 'transparent'}
+                  >
+                    {/* Name */}
+                    <td className="px-5 py-3.5 font-medium" style={{ color: '#1C1C1C' }}>
+                      {owner.name}
+                    </td>
+                    {/* Phone */}
+                    <td className="px-5 py-3.5 font-mono text-xs" style={{ color: '#6A5040' }}>
+                      {owner.phone}
+                    </td>
+                    {/* Role */}
+                    <td className="px-5 py-3.5">
+                      <span
+                        className="inline-block px-2.5 py-0.5 rounded-full text-xs font-medium"
+                        style={
+                          owner.role === 'Manufacturer'
+                            ? { backgroundColor: '#FEF3C7', color: '#92400E' }
+                            : { backgroundColor: '#DBEAFE', color: '#1E40AF' }
+                        }
+                      >
+                        {owner.role}
+                      </span>
+                    </td>
+                    {/* Account Type */}
+                    <td className="px-5 py-3.5">
+                      <span
+                        className="inline-block px-2 py-0.5 rounded text-xs font-medium"
+                        style={
+                          owner.account_type === 'Paid'
+                            ? { backgroundColor: '#D1FAE5', color: '#065F46' }
+                            : { backgroundColor: '#F3F4F6', color: '#6B7280' }
+                        }
+                      >
+                        {owner.account_type || 'Free'}
+                      </span>
+                    </td>
+                    {/* Cashiers */}
+                    <td className="px-5 py-3.5 text-center">
+                      <span
+                        className="inline-flex items-center px-2.5 py-1 rounded-lg text-xs font-bold"
+                        style={{ backgroundColor: '#ECFDF5', color: '#065F46', border: '1px solid #A7F3D0' }}
+                      >
+                        {owner.cashier_count} Cashier{owner.cashier_count !== 1 ? 's' : ''}
+                      </span>
+                    </td>
+                    {/* Cutters */}
+                    <td className="px-5 py-3.5 text-center">
+                      <span
+                        className="inline-flex items-center px-2.5 py-1 rounded-lg text-xs font-bold"
+                        style={{ backgroundColor: '#EEF2FF', color: '#3730A3', border: '1px solid #C7D2FE' }}
+                      >
+                        {owner.cutter_count} Cutter{owner.cutter_count !== 1 ? 's' : ''}
+                      </span>
+                    </td>
+                    {/* Status */}
+                    <td className="px-5 py-3.5 text-right">
+                      <span
+                        className="inline-block px-2 py-0.5 rounded text-xs font-medium"
+                        style={
+                          owner.status === 'Active'
+                            ? { backgroundColor: '#D1FAE5', color: '#065F46' }
+                            : { backgroundColor: '#FEE2E2', color: '#991B1B' }
+                        }
+                      >
+                        {owner.status}
+                      </span>
+                    </td>
+                  </tr>
+                ))
+              )}
+            </tbody>
+          </table>
+        </div>
       </div>
     </Layout>
   )
