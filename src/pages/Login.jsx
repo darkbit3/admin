@@ -9,14 +9,15 @@ export default function Login() {
   const [password, setPassword]   = useState('')
   const [showPassword, setShowPassword] = useState(false)
   const [error, setError]         = useState('')
+  const [fieldErrors, setFieldErrors] = useState({})
   const [loading, setLoading]     = useState(false)
   const navigate = useNavigate()
   const { refreshAdmin } = useAuth()
 
   useEffect(() => {
     // Ping server on mount to verify connection
-    const BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api'
-    fetch(`${BASE_URL}/health`).catch(() => {})
+    const BASE_URL = import.meta.env.VITE_API_URL || 'https://backend-1-khts.onrender.com/api'
+    fetch(`${BASE_URL.replace(/\/api$/, '')}/health`).catch(() => {})
   }, [])
 
   const handlePhoneChange = (e) => {
@@ -34,9 +35,11 @@ export default function Login() {
     e.preventDefault()
     if (!isValidPhone()) {
       setError('Enter a valid 10-digit phone number starting with 09 or 07')
+      setFieldErrors({ phone: 'Enter a valid 10-digit phone number starting with 09 or 07' })
       return
     }
     setError('')
+    setFieldErrors({})
     setLoading(true)
     try {
       await authApi.login(fullPhone, password)
@@ -44,6 +47,11 @@ export default function Login() {
       navigate(ROUTES.DASHBOARD)
     } catch (err) {
       setError(err.message || 'Invalid phone number or password')
+      const errors = {}
+      if (Array.isArray(err.errors)) {
+        err.errors.forEach(({ field, message }) => { errors[field] = message })
+      }
+      setFieldErrors(errors)
     } finally {
       setLoading(false)
     }
@@ -92,15 +100,16 @@ export default function Login() {
             </div>
 
             {error && (
-              <div className="mb-5 bg-red-50 border border-red-200 text-red-600 px-4 py-3 rounded-lg text-sm">
-                {error}
+              <div role="alert" aria-live="assertive" className="mb-5 bg-red-50 border border-red-200 text-red-600 px-4 py-3 rounded-lg text-sm">
+                <p className="font-semibold">Login failed</p>
+                <p className="mt-0.5">{error}</p>
               </div>
             )}
 
             <form onSubmit={handleSubmit} className="space-y-5">
               {/* Phone */}
               <div>
-                <label className="block text-sm font-medium mb-1.5" style={{ color: '#3A2E24' }}>
+                <label htmlFor="admin-phone" className="block text-sm font-medium mb-1.5" style={{ color: '#3A2E24' }}>
                   Phone Number
                 </label>
                 <div className="flex items-center border rounded-lg overflow-hidden transition-all"
@@ -112,6 +121,7 @@ export default function Login() {
                     0
                   </span>
                   <input
+                    id="admin-phone"
                     type="tel"
                     value={phone}
                     onChange={handlePhoneChange}
@@ -124,16 +134,18 @@ export default function Login() {
                   />
                 </div>
                 <p className="text-xs mt-1" style={{ color: '#A09080' }}>Format: 09xxxxxxxxx or 07xxxxxxxxx (10 digits)</p>
+                {fieldErrors.phone && <p className="text-xs mt-1 text-red-600">{fieldErrors.phone}</p>}
               </div>
 
               {/* Password */}
               <div>
-                <label className="block text-sm font-medium mb-1.5" style={{ color: '#3A2E24' }}>
+                <label htmlFor="admin-password" className="block text-sm font-medium mb-1.5" style={{ color: '#3A2E24' }}>
                   Password
                 </label>
                 <div className="flex items-center border rounded-lg overflow-hidden"
                   style={{ borderColor: '#D4C4B0' }}>
                   <input
+                    id="admin-password"
                     type={showPassword ? 'text' : 'password'}
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
@@ -158,6 +170,7 @@ export default function Login() {
                     )}
                   </button>
                 </div>
+                {fieldErrors.password && <p className="text-xs mt-1 text-red-600">{fieldErrors.password}</p>}
               </div>
 
               {/* Forgot */}
