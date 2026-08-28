@@ -11,6 +11,6 @@ export default defineConfig({
   },
   preview: {
     port: 4173,
-    allowedHosts: ['localhost', 'admin-m1b6.onrender.com'],
+    allowedHosts: ['localhost', 'admin-m1b6.onrender.com', 'admin-tafd.onrender.com'],
   },
 })
