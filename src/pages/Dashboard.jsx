@@ -138,7 +138,7 @@ export default function Dashboard() {
         {cardDefs.map((card) => (
           <div
             key={card.key}
-            className="bg-white rounded-xl p-4 flex flex-col gap-3 min-h-[80px]"
+            className="bg-white rounded-xl p-3.5 sm:p-4 flex flex-col gap-3 min-h-[80px]"
             style={{ border: '1px solid #E8D9C5', boxShadow: '0 1px 4px rgba(0,0,0,0.06)' }}
           >
             {/* Icon */}
@@ -153,7 +153,7 @@ export default function Dashboard() {
               <p className="text-xs font-medium leading-tight" style={{ color: '#8A7060' }}>
                 {card.label}
               </p>
-              <p className="text-2xl font-bold mt-0.5" style={{ color: '#1C1C1C' }}>
+              <p className="text-xl sm:text-2xl font-bold mt-0.5" style={{ color: '#1C1C1C' }}>
                 {loading ? (
                   <span
                     className="inline-block w-10 h-6 rounded animate-pulse align-middle"
@@ -173,10 +173,10 @@ export default function Dashboard() {
         style={{ border: '1px solid #E8D9C5', boxShadow: '0 1px 4px rgba(0,0,0,0.06)' }}
       >
         {/* Table header */}
-        <div className="px-5 py-4 flex items-center justify-between" style={{ borderBottom: '1px solid #E8D9C5' }}>
+        <div className="px-4 sm:px-5 py-4 flex items-center justify-between gap-3" style={{ borderBottom: '1px solid #E8D9C5' }}>
           <div>
-            <h2 className="text-base font-bold" style={{ color: '#1C1C1C' }}>Owner Account Details</h2>
-            <p className="text-xs mt-0.5" style={{ color: '#8A7060' }}>
+            <h2 className="text-sm sm:text-base font-bold" style={{ color: '#1C1C1C' }}>Owner Account Details</h2>
+            <p className="text-xs mt-0.5 max-w-[230px] sm:max-w-none" style={{ color: '#8A7060' }}>
               Cashiers &amp; cutters assigned to each Manufacturer / Reseller
             </p>
           </div>
@@ -188,8 +188,51 @@ export default function Dashboard() {
           </span>
         </div>
 
-        {/* Table */}
-        <div className="overflow-x-auto">
+        {/* Mobile cards */}
+        <div className="lg:hidden divide-y" style={{ borderColor: '#F0E8DC' }}>
+          {loading ? (
+            [1, 2, 3].map(item => <div key={item} className="h-24 animate-pulse" style={{ backgroundColor: '#FBF5EC' }} />)
+          ) : !stats?.ownersBreakdown || stats.ownersBreakdown.length === 0 ? (
+            <p className="text-center py-10 text-sm" style={{ color: '#B0A090' }}>No owner accounts created yet</p>
+          ) : (
+            stats.ownersBreakdown.map(owner => (
+              <div key={owner.id} className="p-4">
+                <div className="flex items-start justify-between gap-3">
+                  <div className="min-w-0">
+                    <p className="font-semibold truncate" style={{ color: '#1C1C1C' }}>{owner.name}</p>
+                    <p className="text-xs font-mono mt-1" style={{ color: '#8A7060' }}>{owner.phone}</p>
+                  </div>
+                  <span className="shrink-0 text-xs font-medium px-2 py-1 rounded-full"
+                    style={owner.status === 'Active'
+                      ? { backgroundColor: '#D1FAE5', color: '#065F46' }
+                      : { backgroundColor: '#FEE2E2', color: '#991B1B' }}>
+                    {owner.status}
+                  </span>
+                </div>
+                <div className="flex flex-wrap items-center gap-2 mt-3">
+                  <span className="text-xs font-medium px-2 py-1 rounded-full"
+                    style={owner.role === 'Manufacturer'
+                      ? { backgroundColor: '#FEF3C7', color: '#92400E' }
+                      : { backgroundColor: '#DBEAFE', color: '#1E40AF' }}>
+                    {owner.role}
+                  </span>
+                  <span className="text-xs font-medium px-2 py-1 rounded-full" style={{ backgroundColor: '#F3F4F6', color: '#6B7280' }}>
+                    {owner.account_type || 'Free'} account
+                  </span>
+                  <span className="text-xs font-medium px-2 py-1 rounded-full" style={{ backgroundColor: '#ECFDF5', color: '#065F46' }}>
+                    {owner.cashier_count} cashier{owner.cashier_count !== 1 ? 's' : ''}
+                  </span>
+                  <span className="text-xs font-medium px-2 py-1 rounded-full" style={{ backgroundColor: '#EEF2FF', color: '#3730A3' }}>
+                    {owner.cutter_count} cutter{owner.cutter_count !== 1 ? 's' : ''}
+                  </span>
+                </div>
+              </div>
+            ))
+          )}
+        </div>
+
+        {/* Desktop table */}
+        <div className="hidden lg:block overflow-x-auto">
           <table className="w-full text-sm text-left">
             <thead style={{ backgroundColor: '#FBF5EC' }}>
               <tr>

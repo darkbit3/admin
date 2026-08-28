@@ -487,7 +487,7 @@ export default function Manage() {
                     {user.role}
                   </span>
                   <AccountBadge user={user} />
-                  {!user.account_type !== 'Paid' && user.free_until && (
+                  {user.account_type !== 'Paid' && user.free_until && (
                     <span className={`text-xs ${isExpired(user.free_until) ? 'text-red-400' : 'text-sky-500'}`}>
                       {isExpired(user.free_until) ? 'Expired ' : 'Until '}{fmtDate(user.free_until)}
                     </span>

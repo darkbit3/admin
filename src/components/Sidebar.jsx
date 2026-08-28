@@ -133,10 +133,10 @@ export default function Sidebar() {
 
   return (
     <>
-      {/* ── Desktop sidebar (lg+): always visible left panel ── */}
+      {/* ── Desktop sidebar (lg+): sticky, never scrolls with page ── */}
       <aside
         className="hidden lg:flex flex-col w-64 flex-shrink-0"
-        style={{ backgroundColor: '#1C1C1C', minHeight: '100vh' }}
+        style={{ backgroundColor: '#1C1C1C', height: '100vh', position: 'sticky', top: 0 }}
       >
         <SidebarContent admin={admin} onNavClick={() => {}} onLogout={handleLogout} />
       </aside>
@@ -186,7 +186,7 @@ export default function Sidebar() {
           <NavLink
             key={item.path}
             to={item.path}
-            className="flex-1 flex flex-col items-center justify-center gap-1 transition-all duration-150"
+            className="relative flex-1 flex flex-col items-center justify-center gap-1 transition-all duration-150"
             style={({ isActive }) => ({
               color: isActive ? '#C8A96E' : '#6B5D4F',
             })}
