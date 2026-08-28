@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react'
 import { useNavigate, Link } from 'react-router-dom'
 import { ROUTES } from '../config/routes'
 import { authApi } from '../api/authApi'
+import { BASE_URL } from '../api/client'
 import { useAuth } from '../context/AuthContext'
 
 export default function Login() {
@@ -16,7 +17,6 @@ export default function Login() {
 
   useEffect(() => {
     // Ping server on mount to verify connection
-    const BASE_URL = import.meta.env.VITE_API_URL || 'https://backend-1-khts.onrender.com/api'
     fetch(`${BASE_URL.replace(/\/api$/, '')}/health`).catch(() => {})
   }, [])
 

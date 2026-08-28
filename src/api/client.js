@@ -1,6 +1,9 @@
 // Base API client — handles auth headers, token refresh, and errors
 
-const BASE_URL = import.meta.env.VITE_API_URL || 'https://backend-1-khts.onrender.com/api'
+const DEFAULT_BASE_URL = 'https://backend-1-khts.onrender.com/api'
+const configuredBaseUrl = import.meta.env.VITE_API_URL?.trim()
+const isLocalBaseUrl = configuredBaseUrl && /^https?:\/\/(localhost|127\.0\.0\.1)(:\d+)?(\/|$)/i.test(configuredBaseUrl)
+const BASE_URL = configuredBaseUrl && !isLocalBaseUrl ? configuredBaseUrl.replace(/\/$/, '') : DEFAULT_BASE_URL
 
 function getAccessToken() {
   return localStorage.getItem('access_token')
@@ -83,4 +86,4 @@ export const api = {
   delete: (path, options)       => request(path, { method: 'DELETE' }, true, options?.refreshOnUnauthorized !== false),
 }
 
-export { setTokens, clearTokens, getAccessToken }
+export { BASE_URL, setTokens, clearTokens, getAccessToken }
