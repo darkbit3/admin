@@ -34,7 +34,7 @@ function usePhoneInput() {
 // Main Login page
 // ═══════════════════════════════════════════════════════════════════════════
 export default function Login() {
-  const [tab, setTab] = useState('login')   // 'login' | 'register' | 'forgot'
+  const [tab, setTab] = useState('login')   // 'login' | 'forgot'
 
   return (
     <div className="min-h-screen flex" style={{ backgroundColor: BG }}>
@@ -69,27 +69,9 @@ export default function Login() {
             <p className="text-xs tracking-widest uppercase font-medium mt-1" style={{ color: GOLD }}>Admin Portal</p>
           </div>
 
-          {/* Tab switcher */}
-          <div className="flex rounded-xl overflow-hidden mb-4" style={{ backgroundColor: '#fff', border: `1px solid ${GOLD_BORDER}` }}>
-            {[['login', 'Sign In'], ['register', 'Register']].map(([key, label]) => (
-              <button
-                key={key}
-                onClick={() => setTab(key)}
-                className="flex-1 py-2.5 text-sm font-semibold transition-all duration-200"
-                style={{
-                  backgroundColor: tab === key ? DARK : 'transparent',
-                  color: tab === key ? '#F5EDE0' : '#8A7060',
-                }}
-              >
-                {label}
-              </button>
-            ))}
-          </div>
-
           {/* Tab content */}
-          {tab === 'login'    && <LoginForm    onForgot={() => setTab('forgot')} />}
-          {tab === 'register' && <RegisterInfo />}
-          {tab === 'forgot'   && <ForgotFlow   onBack={() => setTab('login')} />}
+          {tab === 'login'  && <LoginForm  onForgot={() => setTab('forgot')} />}
+          {tab === 'forgot' && <ForgotFlow onBack={() => setTab('login')} />}
         </div>
       </div>
     </div>
@@ -186,37 +168,6 @@ function LoginForm({ onForgot }) {
           {loading ? 'Signing in…' : 'Sign In'}
         </button>
       </form>
-    </div>
-  )
-}
-
-// ═══════════════════════════════════════════════════════════════════════════
-// Register info (no self-registration — accounts are created by super-admin)
-// ═══════════════════════════════════════════════════════════════════════════
-function RegisterInfo() {
-  return (
-    <div className="bg-white rounded-2xl shadow-lg p-8 text-center" style={{ border: '1px solid #E8D9C5' }}>
-      <div className="w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4"
-        style={{ backgroundColor: GOLD_BG }}>
-        <svg className="w-8 h-8" fill="none" viewBox="0 0 24 24" stroke={GOLD} strokeWidth={1.8}>
-          <path strokeLinecap="round" strokeLinejoin="round" d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z" />
-        </svg>
-      </div>
-      <h3 className="text-lg font-bold mb-2" style={{ color: DARK }}>New Account</h3>
-      <p className="text-sm mb-4" style={{ color: '#8A7060', lineHeight: 1.6 }}>
-        Admin accounts are created by the <strong>Super Admin</strong>.<br />
-        Contact your Shmeta Super Administrator to get registered.
-      </p>
-      <div className="rounded-xl p-4 text-left text-sm" style={{ backgroundColor: GOLD_BG, border: `1px solid ${GOLD_BORDER}` }}>
-        <div className="flex gap-2">
-          <svg className="w-4 h-4 flex-shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24" stroke={GOLD} strokeWidth={2}>
-            <path strokeLinecap="round" strokeLinejoin="round" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-          </svg>
-          <span style={{ color: '#5A4A38' }}>
-            Ask your Super Admin to add your phone number in the Super Admin Panel under "Manage Admins".
-          </span>
-        </div>
-      </div>
     </div>
   )
 }
