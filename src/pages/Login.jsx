@@ -51,8 +51,8 @@ export default function Login() {
       {/* Left decorative panel */}
       <div className="hidden lg:flex flex-col justify-between w-2/5 p-12" style={{ backgroundColor: DARK }}>
         <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-xl overflow-hidden flex-shrink-0" style={{ backgroundColor: GOLD }}>
-            <img src="/logo.png" alt="Shmeta Logo" className="w-full h-full object-cover" />
+          <div className="w-10 h-10 rounded-xl overflow-hidden flex-shrink-0 bg-white flex items-center justify-center p-1">
+            <img src="/logo.png" alt="Shmeta Logo" className="w-full h-full object-contain" />
           </div>
           <span className="text-lg font-bold tracking-wide" style={{ color: '#F5EDE0', fontFamily: 'Georgia, serif' }}>Shmeta</span>
         </div>
@@ -72,8 +72,8 @@ export default function Login() {
         <div className="w-full max-w-md">
           {/* Mobile logo */}
           <div className="lg:hidden mb-8 text-center">
-            <div className="w-16 h-16 rounded-2xl overflow-hidden mx-auto mb-3" style={{ backgroundColor: GOLD }}>
-              <img src="/logo.png" alt="Shmeta Logo" className="w-full h-full object-cover" />
+            <div className="w-16 h-16 rounded-2xl overflow-hidden mx-auto mb-3 bg-white flex items-center justify-center p-1.5 shadow-md">
+              <img src="/logo.png" alt="Shmeta Logo" className="w-full h-full object-contain" />
             </div>
             <h1 className="text-2xl font-bold" style={{ color: DARK, fontFamily: 'Georgia, serif' }}>Shmeta</h1>
             <p className="text-xs tracking-widest uppercase font-medium mt-1" style={{ color: GOLD }}>Admin Portal</p>

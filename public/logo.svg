@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 220" fill="none">
+  <!-- Hanger hook -->
+  <path d="M100 8 C100 8 108 8 112 14 C116 20 112 28 104 30 L104 42" stroke="#1C1C1C" stroke-width="7" stroke-linecap="round" fill="none"/>
+  <!-- Hanger bar -->
+  <path d="M104 42 L104 50 L60 72 L40 90 L50 100 L68 84 L68 180 Q68 190 78 190 L122 190 Q132 190 132 180 L132 84 L150 100 L160 90 L140 72 L104 50" fill="#1C1C1C"/>
+  <!-- Shirt body (white cutout for collar/sash area) -->
+  <path d="M104 50 L94 60 L88 58 L80 68 L80 76 Q100 68 120 76 L112 60 Z" fill="white"/>
+  <!-- Decorative sash diagonal stripe -->
+  <path d="M88 70 Q96 130 82 190" stroke="white" stroke-width="10" stroke-linecap="round" fill="none"/>
+  <path d="M88 70 Q96 130 82 190" stroke="white" stroke-width="5" stroke-linecap="round" fill="none"/>
+  <!-- Swirl tail -->
+  <path d="M82 188 Q60 195 58 210 Q56 225 72 225 Q88 225 92 210 Q95 198 86 192" fill="#1C1C1C"/>
+</svg>

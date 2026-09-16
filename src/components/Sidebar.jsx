@@ -81,8 +81,8 @@ function SidebarContent({ admin, onNavClick, onLogout }) {
     <div className="flex flex-col h-full">
       {/* Brand */}
       <div className="px-6 py-5 flex items-center gap-3" style={{ borderBottom: '1px solid rgba(200,169,110,0.2)' }}>
-        <div className="w-10 h-10 rounded-xl overflow-hidden flex-shrink-0" style={{ backgroundColor: '#C8A96E' }}>
-          <img src="/logo.png" alt="Shmeta Logo" className="w-full h-full object-cover" />
+        <div className="w-10 h-10 rounded-xl overflow-hidden flex-shrink-0 bg-white flex items-center justify-center p-1">
+          <img src="/logo.png" alt="Shmeta Logo" className="w-full h-full object-contain" />
         </div>
         <div>
           <h2 className="text-base font-bold leading-tight tracking-wide" style={{ color: '#F5EDE0', fontFamily: 'Georgia, serif' }}>Shmeta</h2>
@@ -160,8 +160,8 @@ export default function Sidebar() {
       >
         {/* Logo + admin name */}
         <div className="flex items-center gap-3">
-          <div className="w-8 h-8 rounded-lg overflow-hidden flex-shrink-0" style={{ backgroundColor: '#C8A96E' }}>
-            <img src="/logo.png" alt="Shmeta" className="w-full h-full object-cover" />
+          <div className="w-8 h-8 rounded-lg overflow-hidden flex-shrink-0 bg-white flex items-center justify-center p-0.5">
+            <img src="/logo.png" alt="Shmeta" className="w-full h-full object-contain" />
           </div>
           <div>
             <span className="text-base font-bold" style={{ color: '#F5EDE0', fontFamily: 'Georgia, serif' }}>Shmeta</span>
