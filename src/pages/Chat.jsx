@@ -1,15 +1,15 @@
-import { useEffect, useMemo, useRef, useState, useCallback } from 'react'
+import { useEffect, useMemo, useRef, useState, useCallback, memo } from 'react'
 import Layout from '../components/Layout'
 import { api } from '../api/client'
 
-const GOLD = '#C8A96E'
-const GOLD_LIGHT = 'rgba(200,169,110,0.10)'
+const GOLD        = '#C8A96E'
+const GOLD_LIGHT  = 'rgba(200,169,110,0.10)'
 const GOLD_BORDER = 'rgba(200,169,110,0.20)'
-const DARK = '#1C1C1C'
-const SA_PURPLE = '#7C3AED'
-const SA_BG = 'rgba(124,58,237,0.10)'
-const SA_BORDER = 'rgba(124,58,237,0.22)'
-const palette = [GOLD, '#8A5A44', '#4D7C6A', '#7B8FA1', '#A56A6A', '#5C6AC4', SA_PURPLE]
+const DARK        = '#1C1C1C'
+const SA_PURPLE   = '#7C3AED'
+const SA_BG       = 'rgba(124,58,237,0.10)'
+const SA_BORDER   = 'rgba(124,58,237,0.22)'
+const palette     = [GOLD, '#8A5A44', '#4D7C6A', '#7B8FA1', '#A56A6A', '#5C6AC4', SA_PURPLE]
 
 function formatTime(value) {
   if (!value) return 'Now'
@@ -19,20 +19,22 @@ function formatTime(value) {
 }
 
 function initials(name) {
-  return (name || 'U').split(' ').map((part) => part[0]).slice(0, 2).join('').toUpperCase() || 'U'
+  return (name || 'U').split(' ').map((p) => p[0]).slice(0, 2).join('').toUpperCase() || 'U'
 }
+
+// ── Pure presentational components (defined OUTSIDE Chat) ─────────────────
 
 function Avatar({ name, isSuperAdmin, color, size = 44 }) {
   const bg = isSuperAdmin ? SA_PURPLE : color || GOLD
   return (
     <div className="relative flex-shrink-0">
-      <div className="flex items-center justify-center rounded-full font-semibold text-xs text-white" style={{ width: size, height: size, backgroundColor: bg, fontSize: size < 36 ? 10 : 12 }}>
+      <div className="flex items-center justify-center rounded-full font-semibold text-xs text-white"
+        style={{ width: size, height: size, backgroundColor: bg, fontSize: size < 36 ? 10 : 12 }}>
         {initials(name)}
       </div>
       {isSuperAdmin && (
-        <span className="absolute -top-1 -right-1 flex items-center justify-center rounded-full text-[8px] text-white font-bold" style={{ width: 16, height: 16, backgroundColor: SA_PURPLE, border: '1.5px solid #fff' }}>
-          ★
-        </span>
+        <span className="absolute -top-1 -right-1 flex items-center justify-center rounded-full text-[8px] text-white font-bold"
+          style={{ width: 16, height: 16, backgroundColor: SA_PURPLE, border: '1.5px solid #fff' }}>★</span>
       )}
     </div>
   )
@@ -41,7 +43,8 @@ function Avatar({ name, isSuperAdmin, color, size = 44 }) {
 function RoleBadge({ role, isSuperAdmin }) {
   if (isSuperAdmin) {
     return (
-      <span className="inline-flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 rounded-full" style={{ backgroundColor: SA_BG, color: SA_PURPLE, border: `1px solid ${SA_BORDER}` }}>
+      <span className="inline-flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 rounded-full"
+        style={{ backgroundColor: SA_BG, color: SA_PURPLE, border: `1px solid ${SA_BORDER}` }}>
         <svg className="w-2.5 h-2.5" fill="currentColor" viewBox="0 0 20 20">
           <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
         </svg>
@@ -49,46 +52,416 @@ function RoleBadge({ role, isSuperAdmin }) {
       </span>
     )
   }
-
   const roleColors = {
     Manufacturer: { bg: 'rgba(16,185,129,0.10)', text: '#047857', border: 'rgba(16,185,129,0.25)' },
-    Reseller: { bg: 'rgba(59,130,246,0.10)', text: '#1d4ed8', border: 'rgba(59,130,246,0.25)' },
-    Cashier: { bg: 'rgba(245,158,11,0.10)', text: '#b45309', border: 'rgba(245,158,11,0.25)' },
-    Cutter: { bg: 'rgba(168,85,247,0.10)', text: '#7e22ce', border: 'rgba(168,85,247,0.25)' },
+    Reseller:     { bg: 'rgba(59,130,246,0.10)',  text: '#1d4ed8', border: 'rgba(59,130,246,0.25)' },
+    Cashier:      { bg: 'rgba(245,158,11,0.10)',  text: '#b45309', border: 'rgba(245,158,11,0.25)' },
+    Cutter:       { bg: 'rgba(168,85,247,0.10)',  text: '#7e22ce', border: 'rgba(168,85,247,0.25)' },
   }
-
   const c = roleColors[role] || { bg: GOLD_LIGHT, text: '#7A5C2E', border: GOLD_BORDER }
   return (
-    <span className="inline-block text-[10px] font-semibold px-2 py-0.5 rounded-full" style={{ backgroundColor: c.bg, color: c.text, border: `1px solid ${c.border}` }}>
+    <span className="inline-block text-[10px] font-semibold px-2 py-0.5 rounded-full"
+      style={{ backgroundColor: c.bg, color: c.text, border: `1px solid ${c.border}` }}>
       {role}
     </span>
   )
 }
 
-export default function Chat() {
-  const [people, setPeople] = useState([])
-  const [groups, setGroups] = useState([])
-  const [search, setSearch] = useState('')
-  const [selectedPersonId, setSelectedPersonId] = useState('')
-  const [selectedGroupId, setSelectedGroupId] = useState('')
-  const [messages, setMessages] = useState([])
-  const [groupMessages, setGroupMessages] = useState([])
-  const [draft, setDraft] = useState('')
-  const [loadingPeople, setLoadingPeople] = useState(true)
-  const [loadingMessages, setLoadingMessages] = useState(false)
-  const [loadingGroups, setLoadingGroups] = useState(false)
-  const [sending, setSending] = useState(false)
-  const [mobileShowChat, setMobileShowChat] = useState(false)
-  const [activeTab, setActiveTab] = useState('people')
-  const [unreadMap, setUnreadMap] = useState({})
-  const pollDelayRef = useRef(30000)
-  const messagesEndRef = useRef(null)
-  const inputRef = useRef(null)
+// ── PersonRow — memo so it only re-renders when its own props change ────────
+const PersonRow = memo(function PersonRow({ person, colorIdx, isSelected, unreadCount, onSelect }) {
+  const color = palette[colorIdx % palette.length]
+  return (
+    <button type="button" onClick={() => onSelect(person.id)}
+      className="flex w-full items-center gap-3 px-4 py-3 text-left transition-all border-b"
+      style={{
+        backgroundColor: isSelected ? (person.isSuperAdmin ? SA_BG : GOLD_LIGHT) : 'transparent',
+        borderColor: GOLD_BORDER,
+        borderLeft: isSelected ? `3px solid ${person.isSuperAdmin ? SA_PURPLE : GOLD}` : '3px solid transparent',
+      }}>
+      <Avatar name={person.name} isSuperAdmin={person.isSuperAdmin} color={color} />
+      <div className="min-w-0 flex-1">
+        <p className="truncate text-sm font-semibold mb-0.5" style={{ color: DARK }}>{person.name}</p>
+        <RoleBadge role={person.role} isSuperAdmin={person.isSuperAdmin} />
+      </div>
+      <div className="flex items-center gap-2">
+        {unreadCount > 0 && (
+          <span className="inline-flex min-w-[20px] h-5 items-center justify-center rounded-full px-1.5 text-[10px] font-bold text-white"
+            style={{ backgroundColor: '#ef4444' }}>
+            {unreadCount > 99 ? '99+' : unreadCount}
+          </span>
+        )}
+        <span className="flex-shrink-0 w-2 h-2 rounded-full"
+          style={{ backgroundColor: person.status === 'Active' ? '#10B981' : '#9CA3AF' }} />
+      </div>
+    </button>
+  )
+})
 
+// ── GroupRow — memo ─────────────────────────────────────────────────────────
+const GroupRow = memo(function GroupRow({ group, isSelected, unreadCount, onSelect }) {
+  return (
+    <button type="button" onClick={() => onSelect(group.id)}
+      className="flex w-full items-center gap-3 px-4 py-3 text-left transition-all border-b"
+      style={{
+        backgroundColor: isSelected ? 'rgba(16,185,129,0.08)' : 'transparent',
+        borderColor: GOLD_BORDER,
+        borderLeft: isSelected ? '3px solid #10B981' : '3px solid transparent',
+      }}>
+      <div className="flex items-center justify-center rounded-full text-white font-semibold flex-shrink-0"
+        style={{ width: 42, height: 42, backgroundColor: '#10B981', fontSize: 10 }}>
+        {initials(group.name)}
+      </div>
+      <div className="min-w-0 flex-1">
+        <p className="truncate text-sm font-semibold mb-0.5" style={{ color: DARK }}>{group.name}</p>
+        <p className="text-[11px] truncate" style={{ color: '#9A8070' }}>
+          {group.description || `Invited by ${group.invitedBy || 'Super Admin'}`}
+        </p>
+        {group.invitedBy && (
+          <p className="text-[10px] mt-1 font-medium" style={{ color: '#047857' }}>
+            Joined • invited by {group.invitedBy}
+          </p>
+        )}
+      </div>
+      <div className="flex items-center gap-2">
+        {unreadCount > 0 && (
+          <span className="inline-flex min-w-[20px] h-5 items-center justify-center rounded-full px-1.5 text-[10px] font-bold text-white"
+            style={{ backgroundColor: '#ef4444' }}>
+            {unreadCount > 99 ? '99+' : unreadCount}
+          </span>
+        )}
+        <span className="flex-shrink-0 px-2 py-0.5 rounded-full text-[10px] font-semibold"
+          style={{ backgroundColor: 'rgba(16,185,129,0.10)', color: '#047857' }}>
+          {group.memberCount || 0}
+        </span>
+      </div>
+    </button>
+  )
+})
+
+// ── ConversationPanel — defined OUTSIDE Chat, receives all props ────────────
+const ConversationPanel = memo(function ConversationPanel({
+  selectedPerson,
+  selectedGroup,
+  messages,
+  groupMessages,
+  loadingMessages,
+  draft,
+  setDraft,
+  sending,
+  onSend,
+  onSendGroup,
+  onBack,
+  inputRef,
+  messagesEndRef,
+}) {
+  const activeMessages  = selectedGroup ? groupMessages : messages
+  const activeThreadName  = selectedGroup ? selectedGroup.name : selectedPerson?.name || 'Chat'
+  const activeThreadColor = selectedGroup ? '#10B981' : selectedPerson?.isSuperAdmin ? SA_PURPLE : GOLD
+
+  if (!selectedPerson && !selectedGroup) {
+    return (
+      <section className="flex flex-col items-center justify-center h-full gap-4 py-20 flex-1">
+        <div className="w-16 h-16 rounded-full flex items-center justify-center" style={{ backgroundColor: GOLD_LIGHT }}>
+          <svg className="w-8 h-8" fill="none" viewBox="0 0 24 24" stroke={GOLD} strokeWidth={1.5}>
+            <path strokeLinecap="round" strokeLinejoin="round" d="M17 8h2a2 2 0 012 2v6a2 2 0 01-2 2h-2v4l-4-4H9a1.994 1.994 0 01-1.414-.586m0 0L11 14h4a2 2 0 002-2V6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2v4l.586-.586z" />
+          </svg>
+        </div>
+        <p className="text-sm font-medium" style={{ color: '#9A8070' }}>Select a contact or group to start chatting</p>
+      </section>
+    )
+  }
+
+  const sendColor = selectedGroup ? '#10B981' : selectedPerson?.isSuperAdmin ? SA_PURPLE : GOLD
+
+  return (
+    <section className="flex flex-col min-h-0 flex-1">
+      {/* Header */}
+      <div className="flex items-center gap-3 border-b px-4 py-3 flex-shrink-0"
+        style={{ borderColor: GOLD_BORDER, backgroundColor: '#FFFDF9' }}>
+        <button type="button" onClick={onBack}
+          className="lg:hidden flex items-center justify-center w-8 h-8 rounded-lg mr-1 transition-colors"
+          style={{ backgroundColor: GOLD_LIGHT }} aria-label="Back to contacts">
+          <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke={GOLD} strokeWidth={2.5}>
+            <path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" />
+          </svg>
+        </button>
+        <Avatar name={activeThreadName} isSuperAdmin={false} color={activeThreadColor} size={40} />
+        <div className="flex-1 min-w-0">
+          <p className="font-semibold text-sm leading-tight" style={{ color: DARK }}>{activeThreadName}</p>
+          {selectedGroup ? (
+            <div className="mt-0.5 flex items-center gap-2 text-[11px]" style={{ color: '#9A8070' }}>
+              <span className="inline-flex items-center px-2 py-0.5 rounded-full"
+                style={{ backgroundColor: 'rgba(16,185,129,0.10)', color: '#047857' }}>Group</span>
+              <span>{selectedGroup.memberCount || 0} members</span>
+              {selectedGroup.invitedBy && <span>joined by {selectedGroup.invitedBy}</span>}
+            </div>
+          ) : (
+            <div className="mt-0.5">
+              <RoleBadge role={selectedPerson.role} isSuperAdmin={selectedPerson.isSuperAdmin} />
+            </div>
+          )}
+        </div>
+        <div className="flex items-center gap-1.5 text-xs font-medium"
+          style={{ color: selectedGroup ? '#059669' : selectedPerson?.status === 'Active' ? '#059669' : '#6B7280' }}>
+          <span className="w-2 h-2 rounded-full flex-shrink-0"
+            style={{ backgroundColor: selectedGroup ? '#10B981' : selectedPerson?.status === 'Active' ? '#10B981' : '#9CA3AF' }} />
+          {selectedGroup ? `${selectedGroup.memberCount || 0} members` : selectedPerson?.status || 'Active'}
+        </div>
+      </div>
+
+      {/* Messages */}
+      <div className="flex-1 overflow-y-auto bg-white px-5 py-4 space-y-3 min-h-0">
+        {loadingMessages ? (
+          <div className="flex items-center gap-2 text-sm py-6" style={{ color: '#9A8070' }}>
+            <svg className="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24">
+              <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+              <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z" />
+            </svg>
+            Loading messages…
+          </div>
+        ) : activeMessages.length === 0 ? (
+          <div className="flex flex-col items-center justify-center h-full gap-3 py-16">
+            <div className="w-14 h-14 rounded-full flex items-center justify-center" style={{ backgroundColor: GOLD_LIGHT }}>
+              <svg className="w-7 h-7" fill="none" viewBox="0 0 24 24" stroke={GOLD} strokeWidth={1.5}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
+              </svg>
+            </div>
+            <p className="text-sm font-medium" style={{ color: '#9A8070' }}>
+              {selectedGroup ? `Start the conversation in ${selectedGroup.name}` : `Start the conversation with ${selectedPerson.name}`}
+            </p>
+          </div>
+        ) : (
+          activeMessages.map((msg) => (
+            <div key={msg.id} className={`flex ${msg.sender === 'me' ? 'justify-end' : 'justify-start'}`}>
+              {msg.sender !== 'me' && (
+                <Avatar
+                  name={selectedGroup ? (msg.senderName || 'Group') : selectedPerson.name}
+                  isSuperAdmin={false}
+                  color={selectedGroup ? '#10B981' : selectedPerson.isSuperAdmin ? SA_PURPLE : GOLD}
+                  size={30}
+                />
+              )}
+              <div className={`max-w-[72%] rounded-2xl px-4 py-2.5 text-sm shadow-sm mx-2 ${msg.sender === 'me' ? 'rounded-br-sm' : 'rounded-bl-sm'}`}
+                style={{
+                  backgroundColor: msg.sender === 'me' ? sendColor : '#F5EDE0',
+                  color: msg.sender === 'me' ? '#fff' : DARK,
+                }}>
+                {selectedGroup && msg.sender !== 'me' && (
+                  <p className="mb-1 text-[10px] font-semibold opacity-80">{msg.senderName || 'Group member'}</p>
+                )}
+                <p className="leading-relaxed break-words">{msg.text}</p>
+                <div className="mt-1 flex items-center justify-between gap-2">
+                  <p className={`text-[10px] ${msg.sender === 'me' ? 'opacity-70' : ''}`}
+                    style={{ color: msg.sender === 'me' ? 'inherit' : '#9A8070' }}>{msg.time}</p>
+                  {msg.sender === 'me' && (
+                    <span className="text-[9px] font-bold" style={{ opacity: 0.8 }}>
+                      {msg.status === 'read' ? '✓✓' : '✓'}
+                    </span>
+                  )}
+                </div>
+              </div>
+            </div>
+          ))
+        )}
+        <div ref={messagesEndRef} />
+      </div>
+
+      {/* Input */}
+      <div className="border-t px-4 py-3 flex-shrink-0"
+        style={{ borderColor: GOLD_BORDER, backgroundColor: '#FFFDF9' }}>
+        <div className="flex items-center gap-2 rounded-xl px-3 py-2"
+          style={{ backgroundColor: '#F8F2EA', border: `1px solid ${GOLD_BORDER}` }}>
+          <textarea
+            ref={inputRef}
+            rows={1}
+            value={draft}
+            onChange={(e) => setDraft(e.target.value)}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter' && !e.shiftKey) {
+                e.preventDefault()
+                if (selectedGroup) onSendGroup()
+                else onSend()
+              }
+            }}
+            placeholder={selectedGroup ? `Message ${selectedGroup.name}…` : `Message ${selectedPerson.name}…`}
+            className="flex-1 bg-transparent text-sm outline-none resize-none leading-relaxed"
+            style={{ color: DARK, maxHeight: 96 }}
+          />
+          <button
+            type="button"
+            onClick={selectedGroup ? onSendGroup : onSend}
+            disabled={!draft.trim() || sending}
+            className="flex items-center gap-1.5 rounded-lg px-4 py-2 text-sm font-semibold transition-all disabled:opacity-40 flex-shrink-0"
+            style={{ backgroundColor: sendColor, color: selectedGroup ? '#fff' : selectedPerson?.isSuperAdmin ? '#fff' : DARK }}>
+            {sending ? (
+              <svg className="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24">
+                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z" />
+              </svg>
+            ) : (
+              <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8" />
+              </svg>
+            )}
+            Send
+          </button>
+        </div>
+        <p className="mt-1 text-[10px] text-right" style={{ color: '#C0A882' }}>
+          Enter to send · Shift+Enter for new line
+        </p>
+      </div>
+    </section>
+  )
+})
+
+// ── Sidebar contact/group lists ─────────────────────────────────────────────
+function ContactsSidebar({
+  filteredPeople, superAdminContacts, otherContacts,
+  filteredGroups, activeTab, setActiveTab,
+  search, setSearch,
+  loadingPeople, loadingGroups,
+  selectedPersonId, selectedGroupId, unreadMap,
+  onSelectPerson, onSelectGroup,
+}) {
+  return (
+    <aside className="flex flex-col border-r" style={{ backgroundColor: '#FAF4EC', borderColor: GOLD_BORDER }}>
+      {/* Tabs */}
+      <div className="border-b px-3 pt-3 flex-shrink-0" style={{ borderColor: GOLD_BORDER }}>
+        <div className="flex gap-2">
+          <button type="button" onClick={() => setActiveTab('people')}
+            className="rounded-t-xl px-4 py-2 text-sm font-semibold border border-b-0"
+            style={{ backgroundColor: activeTab === 'people' ? '#FFFDF9' : '#F3E9DD', color: DARK, borderColor: GOLD_BORDER }}>
+            People
+          </button>
+          <button type="button" onClick={() => setActiveTab('groups')}
+            className="rounded-t-xl px-4 py-2 text-sm font-semibold border border-b-0"
+            style={{ backgroundColor: activeTab === 'groups' ? '#FFFDF9' : '#F3E9DD', color: DARK, borderColor: GOLD_BORDER }}>
+            Groups {filteredGroups.length > 0 ? `(${filteredGroups.length})` : ''}
+          </button>
+        </div>
+      </div>
+
+      {/* Search */}
+      <div className="px-3 py-2 border-b flex-shrink-0" style={{ borderColor: GOLD_BORDER }}>
+        <div className="flex items-center gap-2 rounded-xl px-3 py-2"
+          style={{ backgroundColor: '#F3E9DD', border: `1px solid ${GOLD_BORDER}` }}>
+          <svg className="w-4 h-4 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="#9A8070" strokeWidth={2}>
+            <path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-4.35-4.35m1.85-5.15a7 7 0 11-14 0 7 7 0 0114 0z" />
+          </svg>
+          <input
+            type="text"
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            placeholder={activeTab === 'people' ? 'Search contacts…' : 'Search groups…'}
+            className="w-full bg-transparent text-sm outline-none"
+            style={{ color: DARK }}
+          />
+          {search && (
+            <button type="button" onClick={() => setSearch('')} className="text-xs flex-shrink-0" style={{ color: '#9A8070' }}>✕</button>
+          )}
+        </div>
+      </div>
+
+      {/* List */}
+      <div className="flex-1 overflow-y-auto">
+        {activeTab === 'people' ? (
+          loadingPeople ? (
+            <div className="flex items-center gap-2 p-6 text-sm" style={{ color: '#9A8070' }}>
+              <svg className="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24">
+                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z" />
+              </svg>
+              Loading contacts…
+            </div>
+          ) : filteredPeople.length === 0 ? (
+            <div className="p-6 text-sm text-center" style={{ color: '#9A8070' }}>No contacts found.</div>
+          ) : (
+            <>
+              {superAdminContacts.length > 0 && (
+                <div>
+                  <div className="px-4 pt-3 pb-1.5 flex items-center gap-2">
+                    <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20" style={{ color: SA_PURPLE }}>
+                      <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+                    </svg>
+                    <p className="text-[10px] font-bold uppercase tracking-widest" style={{ color: SA_PURPLE }}>Super Admin</p>
+                  </div>
+                  {superAdminContacts.map((p, i) => (
+                    <PersonRow key={p.id} person={p} colorIdx={i}
+                      isSelected={p.id === selectedPersonId}
+                      unreadCount={unreadMap[p.id] || 0}
+                      onSelect={onSelectPerson} />
+                  ))}
+                </div>
+              )}
+              {superAdminContacts.length > 0 && otherContacts.length > 0 && (
+                <div className="px-4 pt-3 pb-1.5 border-t flex items-center gap-2 mt-1" style={{ borderColor: GOLD_BORDER }}>
+                  <p className="text-[10px] font-bold uppercase tracking-widest" style={{ color: '#9A8070' }}>Your Users</p>
+                </div>
+              )}
+              {otherContacts.length > 0 && !superAdminContacts.length && (
+                <div className="px-4 pt-3 pb-1.5">
+                  <p className="text-[10px] font-bold uppercase tracking-widest" style={{ color: '#9A8070' }}>Your Users</p>
+                </div>
+              )}
+              {otherContacts.map((p, i) => (
+                <PersonRow key={p.id} person={p} colorIdx={i + superAdminContacts.length}
+                  isSelected={p.id === selectedPersonId}
+                  unreadCount={unreadMap[p.id] || 0}
+                  onSelect={onSelectPerson} />
+              ))}
+            </>
+          )
+        ) : (
+          loadingGroups ? (
+            <div className="flex items-center gap-2 p-6 text-sm" style={{ color: '#9A8070' }}>
+              <svg className="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24">
+                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z" />
+              </svg>
+              Loading groups…
+            </div>
+          ) : filteredGroups.length === 0 ? (
+            <div className="p-6 text-sm text-center" style={{ color: '#9A8070' }}>No groups found.</div>
+          ) : (
+            filteredGroups.map((g) => (
+              <GroupRow key={g.id} group={g}
+                isSelected={g.id === selectedGroupId}
+                unreadCount={unreadMap[g.id] || 0}
+                onSelect={onSelectGroup} />
+            ))
+          )
+        )}
+      </div>
+    </aside>
+  )
+}
+
+// ── Main Chat component ─────────────────────────────────────────────────────
+export default function Chat() {
+  const [people,          setPeople]          = useState([])
+  const [groups,          setGroups]          = useState([])
+  const [search,          setSearch]          = useState('')
+  const [selectedPersonId, setSelectedPersonId] = useState('')
+  const [selectedGroupId,  setSelectedGroupId]  = useState('')
+  const [messages,        setMessages]        = useState([])
+  const [groupMessages,   setGroupMessages]   = useState([])
+  const [draft,           setDraft]           = useState('')
+  const [loadingPeople,   setLoadingPeople]   = useState(true)
+  const [loadingMessages, setLoadingMessages] = useState(false)
+  const [loadingGroups,   setLoadingGroups]   = useState(false)
+  const [sending,         setSending]         = useState(false)
+  const [mobileShowChat,  setMobileShowChat]  = useState(false)
+  const [activeTab,       setActiveTab]       = useState('people')
+  const [unreadMap,       setUnreadMap]       = useState({})
+
+  const messagesEndRef = useRef(null)
+  const inputRef       = useRef(null)
+
+  // ── Data fetching ──────────────────────────────────────────────────────
   const fetchPeople = useCallback(async (query = '') => {
     try {
       setLoadingPeople(true)
-      const res = await api.get(`/chat/people${query ? `?search=${encodeURIComponent(query)}` : ''}`)
+      const res  = await api.get(`/chat/people${query ? `?search=${encodeURIComponent(query)}` : ''}`)
       const list = res?.data || []
       setPeople(list)
       if (!selectedPersonId && !selectedGroupId && list[0]) setSelectedPersonId(list[0].id)
@@ -98,15 +471,14 @@ export default function Chat() {
     } finally {
       setLoadingPeople(false)
     }
-  }, [])
+  }, []) // eslint-disable-line react-hooks/exhaustive-deps
 
   const fetchGroups = useCallback(async () => {
     try {
       setLoadingGroups(true)
-      const res = await api.get('/chat/groups')
+      const res  = await api.get('/chat/groups')
       const list = res?.data || []
       setGroups(list)
-      if (!selectedPersonId && !selectedGroupId && list[0]) setSelectedGroupId(list[0].id)
     } catch (err) {
       console.error('Failed to load groups', err)
       setGroups([])
@@ -115,83 +487,68 @@ export default function Chat() {
     }
   }, [])
 
-  useEffect(() => { fetchPeople(search) }, [search, fetchPeople])
-  useEffect(() => { fetchGroups() }, [fetchGroups])
+  useEffect(() => { fetchPeople(search) }, [search]) // eslint-disable-line
+  useEffect(() => { fetchGroups() },       [])       // eslint-disable-line
 
   const loadMessages = useCallback(async (personId) => {
     if (!personId) return
     try {
       setLoadingMessages(true)
       const res = await api.get(`/chat/messages/${personId}`)
-      const threadMessages = (res?.data || []).map((m) => ({
-        id: m.id,
-        sender: m.isMine ? 'me' : 'them',
-        text: m.message,
-        time: formatTime(m.createdAt),
-        status: m.status || 'sent',
+      const msgs = (res?.data || []).map((m) => ({
+        id: m.id, sender: m.isMine ? 'me' : 'them',
+        text: m.message, time: formatTime(m.createdAt), status: m.status || 'sent',
       }))
-
-      const unreadCount = personId === selectedPersonId ? 0 : threadMessages.filter((m) => m.sender === 'them').length
-      setUnreadMap((prev) => ({ ...prev, [personId]: unreadCount }))
-      setMessages(threadMessages)
+      setMessages(msgs)
     } catch (err) {
       console.error('Failed to load messages', err)
       setMessages([])
     } finally {
       setLoadingMessages(false)
     }
-  }, [selectedPersonId])
+  }, [])
 
   const loadGroupMessages = useCallback(async (groupId) => {
     if (!groupId) return
     try {
       setLoadingMessages(true)
       const res = await api.get(`/chat/groups/${groupId}/messages`)
-      const threadMessages = (res?.data || []).map((m) => ({
-        id: m.id,
-        sender: m.isMine ? 'me' : 'them',
-        text: m.message,
-        time: formatTime(m.createdAt),
+      const msgs = (res?.data || []).map((m) => ({
+        id: m.id, sender: m.isMine ? 'me' : 'them',
+        text: m.message, time: formatTime(m.createdAt),
         senderName: m.senderRole === 'super_admin' ? 'Super Admin' : m.senderRole,
         status: m.status || 'sent',
       }))
-
-      const unreadCount = groupId === selectedGroupId ? 0 : threadMessages.filter((m) => m.sender === 'them').length
-      setUnreadMap((prev) => ({ ...prev, [groupId]: unreadCount }))
-      setGroupMessages(threadMessages)
+      setGroupMessages(msgs)
     } catch (err) {
       console.error('Failed to load group messages', err)
       setGroupMessages([])
     } finally {
       setLoadingMessages(false)
     }
-  }, [selectedGroupId])
+  }, [])
 
   useEffect(() => {
-    if (selectedGroupId) {
-      loadGroupMessages(selectedGroupId)
-      return
-    }
-    if (selectedPersonId) {
-      loadMessages(selectedPersonId)
-    }
-  }, [selectedGroupId, selectedPersonId, loadGroupMessages, loadMessages])
+    if (selectedGroupId)  { loadGroupMessages(selectedGroupId); return }
+    if (selectedPersonId) { loadMessages(selectedPersonId) }
+  }, [selectedGroupId, selectedPersonId]) // eslint-disable-line
 
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' })
   }, [messages, groupMessages])
 
+  // Polling
   useEffect(() => {
     if (!selectedPersonId || selectedGroupId) return
     const id = setInterval(() => loadMessages(selectedPersonId), 60000)
     return () => clearInterval(id)
-  }, [selectedPersonId, selectedGroupId, loadMessages])
+  }, [selectedPersonId, selectedGroupId]) // eslint-disable-line
 
   useEffect(() => {
     if (!selectedGroupId) return
     const id = setInterval(() => loadGroupMessages(selectedGroupId), 60000)
     return () => clearInterval(id)
-  }, [selectedGroupId, loadGroupMessages])
+  }, [selectedGroupId]) // eslint-disable-line
 
   useEffect(() => {
     const id = setInterval(() => {
@@ -199,8 +556,9 @@ export default function Chat() {
       if (selectedGroupId) loadGroupMessages(selectedGroupId)
     }, 30000)
     return () => clearInterval(id)
-  }, [fetchGroups, loadGroupMessages, selectedGroupId])
+  }, [selectedGroupId]) // eslint-disable-line
 
+  // ── Derived ────────────────────────────────────────────────────────────
   const filteredPeople = useMemo(() => {
     if (!search) return people
     const q = search.toLowerCase()
@@ -213,23 +571,37 @@ export default function Chat() {
     return groups.filter((g) => `${g.name || ''} ${g.description || ''}`.toLowerCase().includes(q))
   }, [groups, search])
 
-  const superAdminContacts = filteredPeople.filter((p) => p.isSuperAdmin)
-  const otherContacts = filteredPeople.filter((p) => !p.isSuperAdmin)
-  const selectedPerson = people.find((p) => p.id === selectedPersonId) || null
-  const selectedGroup = groups.find((g) => g.id === selectedGroupId) || null
+  const superAdminContacts = useMemo(() => filteredPeople.filter((p) =>  p.isSuperAdmin), [filteredPeople])
+  const otherContacts      = useMemo(() => filteredPeople.filter((p) => !p.isSuperAdmin), [filteredPeople])
+  const selectedPerson     = useMemo(() => people.find((p) => p.id === selectedPersonId) || null, [people, selectedPersonId])
+  const selectedGroup      = useMemo(() => groups.find((g) => g.id === selectedGroupId)  || null, [groups, selectedGroupId])
 
-  const sendMessage = async () => {
+  // ── Actions ────────────────────────────────────────────────────────────
+  const selectPerson = useCallback((id) => {
+    setSelectedPersonId(id)
+    setSelectedGroupId('')
+    setUnreadMap((prev) => ({ ...prev, [id]: 0 }))
+    setMobileShowChat(true)
+  }, [])
+
+  const selectGroup = useCallback((id) => {
+    setSelectedGroupId(id)
+    setSelectedPersonId('')
+    setUnreadMap((prev) => ({ ...prev, [id]: 0 }))
+    setMobileShowChat(true)
+  }, [])
+
+  const sendMessage = useCallback(async () => {
     if (!selectedPerson || !draft.trim() || sending) return
     const text = draft.trim()
     setDraft('')
     setSending(true)
     setMessages((prev) => [...prev, { id: `tmp-${Date.now()}`, sender: 'me', text, time: formatTime(new Date().toISOString()) }])
-
     try {
       await api.post('/chat/send', {
-        receiverId: selectedPerson.id,
+        receiverId:   selectedPerson.id,
         receiverRole: selectedPerson.isSuperAdmin ? 'super_admin' : 'user',
-        message: text,
+        message:      text,
       })
       await loadMessages(selectedPerson.id)
     } catch (err) {
@@ -238,15 +610,14 @@ export default function Chat() {
       setSending(false)
       inputRef.current?.focus()
     }
-  }
+  }, [selectedPerson, draft, sending, loadMessages])
 
-  const sendGroupMessage = async () => {
+  const sendGroupMessage = useCallback(async () => {
     if (!selectedGroupId || !draft.trim() || sending) return
     const text = draft.trim()
     setDraft('')
     setSending(true)
     setGroupMessages((prev) => [...prev, { id: `tmp-${Date.now()}`, sender: 'me', text, time: formatTime(new Date().toISOString()), senderName: 'Me' }])
-
     try {
       await api.post(`/chat/groups/${selectedGroupId}/send`, { message: text })
       await loadGroupMessages(selectedGroupId)
@@ -256,393 +627,153 @@ export default function Chat() {
       setSending(false)
       inputRef.current?.focus()
     }
+  }, [selectedGroupId, draft, sending, loadGroupMessages])
+
+  const handleBack = useCallback(() => setMobileShowChat(false), [])
+
+  // ── Shared sidebar props ───────────────────────────────────────────────
+  const sidebarProps = {
+    filteredPeople, superAdminContacts, otherContacts,
+    filteredGroups, activeTab, setActiveTab,
+    search, setSearch,
+    loadingPeople, loadingGroups,
+    selectedPersonId, selectedGroupId, unreadMap,
+    onSelectPerson: selectPerson,
+    onSelectGroup:  selectGroup,
   }
 
-  const selectPerson = (id) => {
-    setSelectedPersonId(id)
-    setSelectedGroupId('')
-    setUnreadMap((prev) => ({ ...prev, [id]: 0 }))
-    setMobileShowChat(true)
+  // ── Shared conversation props ──────────────────────────────────────────
+  const convoProps = {
+    selectedPerson, selectedGroup,
+    messages, groupMessages,
+    loadingMessages,
+    draft, setDraft,
+    sending,
+    onSend:      sendMessage,
+    onSendGroup: sendGroupMessage,
+    onBack:      handleBack,
+    inputRef,
+    messagesEndRef,
   }
-
-  const selectGroup = (id) => {
-    setSelectedGroupId(id)
-    setSelectedPersonId('')
-    setUnreadMap((prev) => ({ ...prev, [id]: 0 }))
-    setMobileShowChat(true)
-  }
-
-  const PersonRow = ({ person, colorIdx }) => {
-    const color = palette[colorIdx % palette.length]
-    const isSelected = person.id === selectedPersonId
-    const unreadCount = unreadMap[person.id] || 0
-
-    return (
-      <button type="button" onClick={() => selectPerson(person.id)} className="flex w-full items-center gap-3 px-4 py-3 text-left transition-all border-b" style={{ backgroundColor: isSelected ? (person.isSuperAdmin ? SA_BG : GOLD_LIGHT) : 'transparent', borderColor: GOLD_BORDER, borderLeft: isSelected ? `3px solid ${person.isSuperAdmin ? SA_PURPLE : GOLD}` : '3px solid transparent' }}>
-        <Avatar name={person.name} isSuperAdmin={person.isSuperAdmin} color={color} />
-        <div className="min-w-0 flex-1">
-          <p className="truncate text-sm font-semibold mb-0.5" style={{ color: DARK }}>{person.name}</p>
-          <RoleBadge role={person.role} isSuperAdmin={person.isSuperAdmin} />
-        </div>
-        <div className="flex items-center gap-2">
-          {unreadCount > 0 && (
-            <span className="inline-flex min-w-[20px] h-5 items-center justify-center rounded-full px-1.5 text-[10px] font-bold text-white" style={{ backgroundColor: '#ef4444' }}>
-              {unreadCount > 99 ? '99+' : unreadCount}
-            </span>
-          )}
-          <span className="flex-shrink-0 w-2 h-2 rounded-full" style={{ backgroundColor: person.status === 'Active' ? '#10B981' : '#9CA3AF' }} />
-        </div>
-      </button>
-    )
-  }
-
-  const GroupRow = ({ group }) => {
-    const isSelected = group.id === selectedGroupId
-    const unreadCount = unreadMap[group.id] || 0
-
-    return (
-      <button type="button" onClick={() => selectGroup(group.id)} className="flex w-full items-center gap-3 px-4 py-3 text-left transition-all border-b" style={{ backgroundColor: isSelected ? 'rgba(16,185,129,0.08)' : 'transparent', borderColor: GOLD_BORDER, borderLeft: isSelected ? '3px solid #10B981' : '3px solid transparent' }}>
-        <div className="flex items-center justify-center rounded-full text-white font-semibold flex-shrink-0" style={{ width: 42, height: 42, backgroundColor: '#10B981', fontSize: 10 }}>
-          {initials(group.name)}
-        </div>
-        <div className="min-w-0 flex-1">
-          <p className="truncate text-sm font-semibold mb-0.5" style={{ color: DARK }}>{group.name}</p>
-          <p className="text-[11px] truncate" style={{ color: '#9A8070' }}>{group.description || `Invited by ${group.invitedBy || 'Super Admin'}`}</p>
-          {group.invitedBy && <p className="text-[10px] mt-1 font-medium" style={{ color: '#047857' }}>Joined • invited by {group.invitedBy}</p>}
-        </div>
-        <div className="flex items-center gap-2">
-          {unreadCount > 0 && (
-            <span className="inline-flex min-w-[20px] h-5 items-center justify-center rounded-full px-1.5 text-[10px] font-bold text-white" style={{ backgroundColor: '#ef4444' }}>
-              {unreadCount > 99 ? '99+' : unreadCount}
-            </span>
-          )}
-          <span className="flex-shrink-0 px-2 py-0.5 rounded-full text-[10px] font-semibold" style={{ backgroundColor: 'rgba(16,185,129,0.10)', color: '#047857' }}>{group.memberCount || 0}</span>
-        </div>
-      </button>
-    )
-  }
-
-  const activeMessages = selectedGroupId ? groupMessages : messages
-  const activeThreadName = selectedGroup ? selectedGroup.name : selectedPerson?.name || 'Chat'
-  const activeThreadColor = selectedGroup ? '#10B981' : selectedPerson?.isSuperAdmin ? SA_PURPLE : GOLD
-
-  const ConversationPanel = () => (
-    <section className="flex flex-col min-h-0 flex-1">
-      {selectedPerson || selectedGroup ? (
-        <>
-          <div className="flex items-center gap-3 border-b px-4 py-3 flex-shrink-0" style={{ borderColor: GOLD_BORDER, backgroundColor: '#FFFDF9' }}>
-            <button type="button" onClick={() => setMobileShowChat(false)} className="lg:hidden flex items-center justify-center w-8 h-8 rounded-lg mr-1 transition-colors" style={{ backgroundColor: GOLD_LIGHT }} aria-label="Back to contacts">
-              <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke={GOLD} strokeWidth={2.5}><path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" /></svg>
-            </button>
-            <Avatar name={activeThreadName} isSuperAdmin={false} color={activeThreadColor} size={40} />
-            <div className="flex-1 min-w-0">
-              <p className="font-semibold text-sm leading-tight" style={{ color: DARK }}>{activeThreadName}</p>
-              {selectedGroup ? (
-                <div className="mt-0.5 flex items-center gap-2 text-[11px]" style={{ color: '#9A8070' }}>
-                  <span className="inline-flex items-center px-2 py-0.5 rounded-full" style={{ backgroundColor: 'rgba(16,185,129,0.10)', color: '#047857' }}>Group</span>
-                  <span>{selectedGroup.memberCount || 0} members</span>
-                  {selectedGroup.invitedBy && <span>joined by {selectedGroup.invitedBy}</span>}
-                </div>
-              ) : (
-                <div className="mt-0.5"><RoleBadge role={selectedPerson.role} isSuperAdmin={selectedPerson.isSuperAdmin} /></div>
-              )}
-            </div>
-            <div className="flex items-center gap-1.5 text-xs font-medium" style={{ color: selectedGroup ? '#059669' : selectedPerson?.status === 'Active' ? '#059669' : '#6B7280' }}>
-              <span className="w-2 h-2 rounded-full flex-shrink-0" style={{ backgroundColor: selectedGroup ? '#10B981' : selectedPerson?.status === 'Active' ? '#10B981' : '#9CA3AF' }} />
-              {selectedGroup ? `${selectedGroup.memberCount || 0} members` : selectedPerson?.status || 'Active'}
-            </div>
-          </div>
-
-          <div className="flex-1 overflow-y-auto bg-white px-5 py-4 space-y-3 min-h-0">
-            {loadingMessages ? (
-              <div className="flex items-center gap-2 text-sm py-6" style={{ color: '#9A8070' }}>
-                <svg className="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" /><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z" /></svg>
-                Loading messages…
-              </div>
-            ) : activeMessages.length === 0 ? (
-              <div className="flex flex-col items-center justify-center h-full gap-3 py-16">
-                <div className="w-14 h-14 rounded-full flex items-center justify-center" style={{ backgroundColor: GOLD_LIGHT }}>
-                  <svg className="w-7 h-7" fill="none" viewBox="0 0 24 24" stroke={GOLD} strokeWidth={1.5}><path strokeLinecap="round" strokeLinejoin="round" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" /></svg>
-                </div>
-                <p className="text-sm font-medium" style={{ color: '#9A8070' }}>{selectedGroup ? `Start the conversation in ${selectedGroup.name}` : `Start the conversation with ${selectedPerson.name}`}</p>
-              </div>
-            ) : (
-              activeMessages.map((msg) => (
-                <div key={msg.id} className={`flex ${msg.sender === 'me' ? 'justify-end' : 'justify-start'}`}>
-                  {msg.sender !== 'me' && (
-                    <Avatar name={selectedGroup ? (msg.senderName || 'Group') : selectedPerson.name} isSuperAdmin={false} color={selectedGroup ? '#10B981' : selectedPerson.isSuperAdmin ? SA_PURPLE : GOLD} size={30} />
-                  )}
-                  <div className={`max-w-[72%] rounded-2xl px-4 py-2.5 text-sm shadow-sm mx-2 ${msg.sender === 'me' ? 'rounded-br-sm' : 'rounded-bl-sm'}`} style={{ backgroundColor: msg.sender === 'me' ? (selectedGroup ? '#10B981' : selectedPerson.isSuperAdmin ? SA_PURPLE : GOLD) : '#F5EDE0', color: msg.sender === 'me' ? '#fff' : DARK }}>
-                    {selectedGroup && msg.sender !== 'me' && <p className="mb-1 text-[10px] font-semibold opacity-80">{msg.senderName || 'Group member'}</p>}
-                    <p className="leading-relaxed break-words">{msg.text}</p>
-                    <div className="mt-1 flex items-center justify-between gap-2">
-                      <p className={`text-[10px] ${msg.sender === 'me' ? 'opacity-70' : ''}`} style={{ color: msg.sender === 'me' ? 'inherit' : '#9A8070' }}>{msg.time}</p>
-                      {msg.sender === 'me' && (
-                        <span className="text-[9px] font-bold" style={{ color: msg.status === 'read' ? '#fff' : 'inherit', opacity: 0.8 }}>
-                          {msg.status === 'read' ? '✓✓' : '✓'}
-                        </span>
-                      )}
-                    </div>
-                  </div>
-                </div>
-              ))
-            )}
-            <div ref={messagesEndRef} />
-          </div>
-
-          <div className="border-t px-4 py-3 flex-shrink-0" style={{ borderColor: GOLD_BORDER, backgroundColor: '#FFFDF9' }}>
-            <div className="flex items-center gap-2 rounded-xl px-3 py-2" style={{ backgroundColor: '#F8F2EA', border: `1px solid ${GOLD_BORDER}` }}>
-              <textarea ref={inputRef} rows={1} value={draft} onChange={(e) => setDraft(e.target.value)} onKeyDown={(e) => {
-                if (e.key === 'Enter' && !e.shiftKey) {
-                  e.preventDefault()
-                  if (selectedGroup) sendGroupMessage()
-                  else sendMessage()
-                }
-              }} placeholder={selectedGroup ? `Message ${selectedGroup.name}…` : `Message ${selectedPerson.name}…`} className="flex-1 bg-transparent text-sm outline-none resize-none leading-relaxed" style={{ color: DARK, maxHeight: 96 }} />
-              <button type="button" onClick={selectedGroup ? sendGroupMessage : sendMessage} disabled={!draft.trim() || sending} className="flex items-center gap-1.5 rounded-lg px-4 py-2 text-sm font-semibold transition-all disabled:opacity-40 flex-shrink-0" style={{ backgroundColor: selectedGroup ? '#10B981' : selectedPerson.isSuperAdmin ? SA_PURPLE : GOLD, color: selectedGroup ? '#fff' : selectedPerson.isSuperAdmin ? '#fff' : DARK }}>
-                {sending ? (
-                  <svg className="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" /><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z" /></svg>
-                ) : (
-                  <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8" /></svg>
-                )}
-                Send
-              </button>
-            </div>
-            <p className="mt-1 text-[10px] text-right" style={{ color: '#C0A882' }}>Enter to send · Shift+Enter for new line</p>
-          </div>
-        </>
-      ) : (
-        <div className="flex flex-col items-center justify-center h-full gap-4 py-20">
-          <div className="w-16 h-16 rounded-full flex items-center justify-center" style={{ backgroundColor: GOLD_LIGHT }}>
-            <svg className="w-8 h-8" fill="none" viewBox="0 0 24 24" stroke={GOLD} strokeWidth={1.5}><path strokeLinecap="round" strokeLinejoin="round" d="M17 8h2a2 2 0 012 2v6a2 2 0 01-2 2h-2v4l-4-4H9a1.994 1.994 0 01-1.414-.586m0 0L11 14h4a2 2 0 002-2V6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2v4l.586-.586z" /></svg>
-          </div>
-          <p className="text-sm font-medium" style={{ color: '#9A8070' }}>Select a contact or group to start chatting</p>
-        </div>
-      )}
-    </section>
-  )
 
   return (
     <Layout>
       <div className="space-y-5">
         <div>
           <h1 className="text-2xl font-bold" style={{ color: DARK }}>Chat</h1>
-          <p className="mt-1 text-sm" style={{ color: '#6B5D4F' }}>Message your users, super admin, and invited groups</p>
+          <p className="mt-1 text-sm" style={{ color: '#6B5D4F' }}>
+            Message your users, super admin, and invited groups
+          </p>
         </div>
 
-        <div className="overflow-hidden rounded-2xl shadow-sm" style={{ backgroundColor: '#FFFDF9', border: `1px solid ${GOLD_BORDER}` }}>
-          <div className="border-b border-[rgba(200,169,110,0.20)] px-3 pt-3">
-            <div className="flex gap-2 overflow-x-auto">
-              <button type="button" onClick={() => setActiveTab('people')} className="rounded-t-xl px-4 py-2 text-sm font-semibold border border-b-0" style={{ backgroundColor: activeTab === 'people' ? '#FFFDF9' : '#F3E9DD', color: DARK, borderColor: GOLD_BORDER }}>
-                People
-              </button>
-              <button type="button" onClick={() => setActiveTab('groups')} className="rounded-t-xl px-4 py-2 text-sm font-semibold border border-b-0" style={{ backgroundColor: activeTab === 'groups' ? '#FFFDF9' : '#F3E9DD', color: DARK, borderColor: GOLD_BORDER }}>
-                Groups {groups.length > 0 ? `(${groups.length})` : ''}
-              </button>
-            </div>
+        <div className="overflow-hidden rounded-2xl shadow-sm"
+          style={{ backgroundColor: '#FFFDF9', border: `1px solid ${GOLD_BORDER}` }}>
+
+          {/* Mobile layout */}
+          <div className="lg:hidden flex flex-col" style={{ minHeight: 680 }}>
+            {!mobileShowChat ? (
+              <aside className="flex flex-col flex-1" style={{ backgroundColor: '#FAF4EC' }}>
+                {/* Mobile tabs */}
+                <div className="border-b px-3 pt-3 flex-shrink-0" style={{ borderColor: GOLD_BORDER }}>
+                  <div className="flex gap-2">
+                    <button type="button" onClick={() => setActiveTab('people')}
+                      className="rounded-t-xl px-4 py-2 text-sm font-semibold border border-b-0"
+                      style={{ backgroundColor: activeTab === 'people' ? '#FFFDF9' : '#F3E9DD', color: DARK, borderColor: GOLD_BORDER }}>
+                      People
+                    </button>
+                    <button type="button" onClick={() => setActiveTab('groups')}
+                      className="rounded-t-xl px-4 py-2 text-sm font-semibold border border-b-0"
+                      style={{ backgroundColor: activeTab === 'groups' ? '#FFFDF9' : '#F3E9DD', color: DARK, borderColor: GOLD_BORDER }}>
+                      Groups {filteredGroups.length > 0 ? `(${filteredGroups.length})` : ''}
+                    </button>
+                  </div>
+                </div>
+                {/* Reuse sidebar content */}
+                <div className="px-3 py-2 border-b flex-shrink-0" style={{ borderColor: GOLD_BORDER }}>
+                  <div className="flex items-center gap-2 rounded-xl px-3 py-2"
+                    style={{ backgroundColor: '#F3E9DD', border: `1px solid ${GOLD_BORDER}` }}>
+                    <svg className="w-4 h-4 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="#9A8070" strokeWidth={2}>
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-4.35-4.35m1.85-5.15a7 7 0 11-14 0 7 7 0 0114 0z" />
+                    </svg>
+                    <input type="text" value={search} onChange={(e) => setSearch(e.target.value)}
+                      placeholder={activeTab === 'people' ? 'Search contacts…' : 'Search groups…'}
+                      className="w-full bg-transparent text-sm outline-none" style={{ color: DARK }} />
+                    {search && (
+                      <button type="button" onClick={() => setSearch('')} className="text-xs flex-shrink-0" style={{ color: '#9A8070' }}>✕</button>
+                    )}
+                  </div>
+                </div>
+                <div className="flex-1 overflow-y-auto">
+                  {activeTab === 'people' ? (
+                    loadingPeople ? (
+                      <div className="flex items-center gap-2 p-6 text-sm" style={{ color: '#9A8070' }}>
+                        <svg className="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24">
+                          <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                          <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z" />
+                        </svg>
+                        Loading contacts…
+                      </div>
+                    ) : filteredPeople.length === 0 ? (
+                      <div className="p-6 text-sm text-center" style={{ color: '#9A8070' }}>No contacts found.</div>
+                    ) : (
+                      <>
+                        {superAdminContacts.length > 0 && (
+                          <div>
+                            <div className="px-4 pt-3 pb-1.5 flex items-center gap-2">
+                              <p className="text-[10px] font-bold uppercase tracking-widest" style={{ color: SA_PURPLE }}>Super Admin</p>
+                            </div>
+                            {superAdminContacts.map((p, i) => (
+                              <PersonRow key={p.id} person={p} colorIdx={i}
+                                isSelected={p.id === selectedPersonId}
+                                unreadCount={unreadMap[p.id] || 0}
+                                onSelect={selectPerson} />
+                            ))}
+                          </div>
+                        )}
+                        {otherContacts.length > 0 && (
+                          <div className="px-4 pt-3 pb-1.5">
+                            <p className="text-[10px] font-bold uppercase tracking-widest" style={{ color: '#9A8070' }}>Your Users</p>
+                          </div>
+                        )}
+                        {otherContacts.map((p, i) => (
+                          <PersonRow key={p.id} person={p} colorIdx={i + superAdminContacts.length}
+                            isSelected={p.id === selectedPersonId}
+                            unreadCount={unreadMap[p.id] || 0}
+                            onSelect={selectPerson} />
+                        ))}
+                      </>
+                    )
+                  ) : (
+                    loadingGroups ? (
+                      <div className="flex items-center gap-2 p-6 text-sm" style={{ color: '#9A8070' }}>
+                        <svg className="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24">
+                          <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                          <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z" />
+                        </svg>
+                        Loading groups…
+                      </div>
+                    ) : filteredGroups.length === 0 ? (
+                      <div className="p-6 text-sm text-center" style={{ color: '#9A8070' }}>No groups found.</div>
+                    ) : (
+                      filteredGroups.map((g) => (
+                        <GroupRow key={g.id} group={g}
+                          isSelected={g.id === selectedGroupId}
+                          unreadCount={unreadMap[g.id] || 0}
+                          onSelect={selectGroup} />
+                      ))
+                    )
+                  )}
+                </div>
+              </aside>
+            ) : (
+              <ConversationPanel {...convoProps} />
+            )}
           </div>
 
-          <div className="min-h-[680px]">
-            <div className="lg:hidden flex flex-col" style={{ minHeight: 680 }}>
-              {!mobileShowChat ? (
-                <aside className="flex flex-col flex-1" style={{ backgroundColor: '#FAF4EC' }}>
-                  {activeTab === 'people' ? (
-                    <>
-                      <div className="flex items-center justify-between px-4 py-3 border-b flex-shrink-0" style={{ borderColor: GOLD_BORDER }}>
-                        <div>
-                          <h2 className="text-base font-bold" style={{ color: DARK }}>Contacts</h2>
-                          <p className="text-[10px] mt-0.5" style={{ color: '#9A8070' }}>{filteredPeople.length} contact{filteredPeople.length !== 1 ? 's' : ''}</p>
-                        </div>
-                      </div>
-
-                      <div className="px-3 py-2 border-b flex-shrink-0" style={{ borderColor: GOLD_BORDER }}>
-                        <div className="flex items-center gap-2 rounded-xl px-3 py-2" style={{ backgroundColor: '#F3E9DD', border: `1px solid ${GOLD_BORDER}` }}>
-                          <svg className="w-4 h-4 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="#9A8070" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-4.35-4.35m1.85-5.15a7 7 0 11-14 0 7 7 0 0114 0z" /></svg>
-                          <input type="text" value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Search contacts…" className="w-full bg-transparent text-sm outline-none" style={{ color: DARK }} />
-                          {search && <button type="button" onClick={() => setSearch('')} className="text-xs flex-shrink-0" style={{ color: '#9A8070' }}>✕</button>}
-                        </div>
-                      </div>
-
-                      <div className="flex-1 overflow-y-auto">
-                        {loadingPeople ? (
-                          <div className="flex items-center gap-2 p-6 text-sm" style={{ color: '#9A8070' }}><svg className="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" /><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z" /></svg>Loading contacts…</div>
-                        ) : filteredPeople.length === 0 ? (
-                          <div className="p-6 text-sm text-center" style={{ color: '#9A8070' }}>No contacts found.</div>
-                        ) : (
-                          <>
-                            {superAdminContacts.length > 0 && (
-                              <div>
-                                <div className="px-4 pt-3 pb-1.5 flex items-center gap-2">
-                                  <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20" style={{ color: '#7C3AED' }}><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" /></svg>
-                                  <p className="text-[10px] font-bold uppercase tracking-widest" style={{ color: '#7C3AED' }}>Super Admin</p>
-                                </div>
-                                {superAdminContacts.map((p, i) => <PersonRow key={p.id} person={p} colorIdx={i} />)}
-                              </div>
-                            )}
-
-                            {superAdminContacts.length > 0 && otherContacts.length > 0 && (
-                              <div className="px-4 pt-3 pb-1.5 border-t flex items-center gap-2 mt-1" style={{ borderColor: GOLD_BORDER }}>
-                                <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="#9A8070" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z" /></svg>
-                                <p className="text-[10px] font-bold uppercase tracking-widest" style={{ color: '#9A8070' }}>Your Users</p>
-                              </div>
-                            )}
-
-                            {otherContacts.length > 0 && !superAdminContacts.length && (
-                              <div className="px-4 pt-3 pb-1.5"><p className="text-[10px] font-bold uppercase tracking-widest" style={{ color: '#9A8070' }}>Your Users</p></div>
-                            )}
-
-                            {otherContacts.map((p, i) => <PersonRow key={p.id} person={p} colorIdx={i + superAdminContacts.length} />)}
-                          </>
-                        )}
-                      </div>
-                    </>
-                  ) : (
-                    <>
-                      <div className="flex items-center justify-between px-4 py-3 border-b flex-shrink-0" style={{ borderColor: GOLD_BORDER }}>
-                        <div>
-                          <h2 className="text-base font-bold" style={{ color: DARK }}>Groups</h2>
-                          <p className="text-[10px] mt-0.5" style={{ color: '#9A8070' }}>{filteredGroups.length} group{filteredGroups.length !== 1 ? 's' : ''}</p>
-                        </div>
-                      </div>
-
-                      <div className="px-3 py-2 border-b flex-shrink-0" style={{ borderColor: GOLD_BORDER }}>
-                        <div className="flex items-center gap-2 rounded-xl px-3 py-2" style={{ backgroundColor: '#F3E9DD', border: `1px solid ${GOLD_BORDER}` }}>
-                          <svg className="w-4 h-4 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="#9A8070" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-4.35-4.35m1.85-5.15a7 7 0 11-14 0 7 7 0 0114 0z" /></svg>
-                          <input type="text" value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Search groups…" className="w-full bg-transparent text-sm outline-none" style={{ color: DARK }} />
-                          {search && <button type="button" onClick={() => setSearch('')} className="text-xs flex-shrink-0" style={{ color: '#9A8070' }}>✕</button>}
-                        </div>
-                      </div>
-
-                      <div className="flex-1 overflow-y-auto">
-                        {loadingGroups ? (
-                          <div className="flex items-center gap-2 p-6 text-sm" style={{ color: '#9A8070' }}><svg className="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" /><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z" /></svg>Loading groups…</div>
-                        ) : filteredGroups.length === 0 ? (
-                          <div className="p-6 text-sm text-center" style={{ color: '#9A8070' }}>No groups found.</div>
-                        ) : (
-                          filteredGroups.map((group) => {
-                            const isSelected = selectedGroupId === group.id
-                            return (
-                              <button key={group.id} type="button" onClick={() => selectGroup(group.id)} className="flex w-full items-center gap-3 px-4 py-3 text-left transition-all border-b" style={{ backgroundColor: isSelected ? 'rgba(16,185,129,0.08)' : 'transparent', borderColor: GOLD_BORDER, borderLeft: isSelected ? '3px solid #10B981' : '3px solid transparent' }}>
-                                <div className="flex items-center justify-center rounded-full text-white font-semibold flex-shrink-0" style={{ width: 42, height: 42, backgroundColor: '#10B981', fontSize: 10 }}>
-                                  {initials(group.name)}
-                                </div>
-                                <div className="min-w-0 flex-1">
-                                  <p className="truncate text-sm font-semibold mb-0.5" style={{ color: DARK }}>{group.name}</p>
-                                  <p className="text-[11px] truncate" style={{ color: '#9A8070' }}>{group.description || `Joined by ${group.invitedBy || 'Super Admin'}`}</p>
-                                  {group.invitedBy && <p className="text-[10px] mt-1 font-medium" style={{ color: '#047857' }}>Joined • invited by {group.invitedBy}</p>}
-                                </div>
-                                <span className="flex-shrink-0 px-2 py-0.5 rounded-full text-[10px] font-semibold" style={{ backgroundColor: 'rgba(16,185,129,0.10)', color: '#047857' }}>{group.memberCount || 0}</span>
-                              </button>
-                            )
-                          })
-                        )}
-                      </div>
-                    </>
-                  )}
-                </aside>
-              ) : (
-                <ConversationPanel />
-              )}
-            </div>
-
-            <div className="hidden lg:grid lg:grid-cols-[320px_minmax(0,1fr)]" style={{ minHeight: 680 }}>
-              <aside className="flex flex-col border-r" style={{ backgroundColor: '#FAF4EC', borderColor: GOLD_BORDER }}>
-                {activeTab === 'people' ? (
-                  <>
-                    <div className="flex items-center justify-between px-4 py-3 border-b flex-shrink-0" style={{ borderColor: GOLD_BORDER }}>
-                      <div>
-                        <h2 className="text-base font-bold" style={{ color: DARK }}>Contacts</h2>
-                        <p className="text-[10px] mt-0.5" style={{ color: '#9A8070' }}>{filteredPeople.length} contact{filteredPeople.length !== 1 ? 's' : ''}</p>
-                      </div>
-                    </div>
-
-                    <div className="px-3 py-2 border-b flex-shrink-0" style={{ borderColor: GOLD_BORDER }}>
-                      <div className="flex items-center gap-2 rounded-xl px-3 py-2" style={{ backgroundColor: '#F3E9DD', border: `1px solid ${GOLD_BORDER}` }}>
-                        <svg className="w-4 h-4 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="#9A8070" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-4.35-4.35m1.85-5.15a7 7 0 11-14 0 7 7 0 0114 0z" /></svg>
-                        <input type="text" value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Search contacts…" className="w-full bg-transparent text-sm outline-none" style={{ color: DARK }} />
-                        {search && <button type="button" onClick={() => setSearch('')} className="text-xs flex-shrink-0" style={{ color: '#9A8070' }}>✕</button>}
-                      </div>
-                    </div>
-
-                    <div className="flex-1 overflow-y-auto">
-                      {loadingPeople ? (
-                        <div className="flex items-center gap-2 p-6 text-sm" style={{ color: '#9A8070' }}><svg className="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" /><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z" /></svg>Loading contacts…</div>
-                      ) : filteredPeople.length === 0 ? (
-                        <div className="p-6 text-sm text-center" style={{ color: '#9A8070' }}>No contacts found.</div>
-                      ) : (
-                        <>
-                          {superAdminContacts.length > 0 && (
-                            <div>
-                              <div className="px-4 pt-3 pb-1.5 flex items-center gap-2">
-                                <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20" style={{ color: '#7C3AED' }}><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" /></svg>
-                                <p className="text-[10px] font-bold uppercase tracking-widest" style={{ color: '#7C3AED' }}>Super Admin</p>
-                              </div>
-                              {superAdminContacts.map((p, i) => <PersonRow key={p.id} person={p} colorIdx={i} />)}
-                            </div>
-                          )}
-
-                          {superAdminContacts.length > 0 && otherContacts.length > 0 && (
-                            <div className="px-4 pt-3 pb-1.5 border-t flex items-center gap-2 mt-1" style={{ borderColor: GOLD_BORDER }}>
-                              <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="#9A8070" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z" /></svg>
-                              <p className="text-[10px] font-bold uppercase tracking-widest" style={{ color: '#9A8070' }}>Your Users</p>
-                            </div>
-                          )}
-
-                          {otherContacts.length > 0 && !superAdminContacts.length && (
-                            <div className="px-4 pt-3 pb-1.5"><p className="text-[10px] font-bold uppercase tracking-widest" style={{ color: '#9A8070' }}>Your Users</p></div>
-                          )}
-
-                          {otherContacts.map((p, i) => <PersonRow key={p.id} person={p} colorIdx={i + superAdminContacts.length} />)}
-                        </>
-                      )}
-                    </div>
-                  </>
-                ) : (
-                  <>
-                    <div className="flex items-center justify-between px-4 py-3 border-b flex-shrink-0" style={{ borderColor: GOLD_BORDER }}>
-                      <div>
-                        <h2 className="text-base font-bold" style={{ color: DARK }}>Groups</h2>
-                        <p className="text-[10px] mt-0.5" style={{ color: '#9A8070' }}>{filteredGroups.length} group{filteredGroups.length !== 1 ? 's' : ''}</p>
-                      </div>
-                    </div>
-
-                    <div className="px-3 py-2 border-b flex-shrink-0" style={{ borderColor: GOLD_BORDER }}>
-                      <div className="flex items-center gap-2 rounded-xl px-3 py-2" style={{ backgroundColor: '#F3E9DD', border: `1px solid ${GOLD_BORDER}` }}>
-                        <svg className="w-4 h-4 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="#9A8070" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-4.35-4.35m1.85-5.15a7 7 0 11-14 0 7 7 0 0114 0z" /></svg>
-                        <input type="text" value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Search groups…" className="w-full bg-transparent text-sm outline-none" style={{ color: DARK }} />
-                        {search && <button type="button" onClick={() => setSearch('')} className="text-xs flex-shrink-0" style={{ color: '#9A8070' }}>✕</button>}
-                      </div>
-                    </div>
-
-                    <div className="flex-1 overflow-y-auto">
-                      {loadingGroups ? (
-                        <div className="flex items-center gap-2 p-6 text-sm" style={{ color: '#9A8070' }}><svg className="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" /><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z" /></svg>Loading groups…</div>
-                      ) : filteredGroups.length === 0 ? (
-                        <div className="p-6 text-sm text-center" style={{ color: '#9A8070' }}>No groups found.</div>
-                      ) : (
-                        filteredGroups.map((group) => {
-                          const isSelected = selectedGroupId === group.id
-                          return (
-                            <button key={group.id} type="button" onClick={() => selectGroup(group.id)} className="flex w-full items-center gap-3 px-4 py-3 text-left transition-all border-b" style={{ backgroundColor: isSelected ? 'rgba(16,185,129,0.08)' : 'transparent', borderColor: GOLD_BORDER, borderLeft: isSelected ? '3px solid #10B981' : '3px solid transparent' }}>
-                              <div className="flex items-center justify-center rounded-full text-white font-semibold flex-shrink-0" style={{ width: 42, height: 42, backgroundColor: '#10B981', fontSize: 10 }}>
-                                {initials(group.name)}
-                              </div>
-                              <div className="min-w-0 flex-1">
-                                <p className="truncate text-sm font-semibold mb-0.5" style={{ color: DARK }}>{group.name}</p>
-                                <p className="text-[11px] truncate" style={{ color: '#9A8070' }}>{group.description || `Joined by ${group.invitedBy || 'Super Admin'}`}</p>
-                                {group.invitedBy && <p className="text-[10px] mt-1 font-medium" style={{ color: '#047857' }}>Joined • invited by {group.invitedBy}</p>}
-                              </div>
-                              <span className="flex-shrink-0 px-2 py-0.5 rounded-full text-[10px] font-semibold" style={{ backgroundColor: 'rgba(16,185,129,0.10)', color: '#047857' }}>{group.memberCount || 0}</span>
-                            </button>
-                          )
-                        })
-                      )}
-                    </div>
-                  </>
-                )}
-              </aside>
-              <ConversationPanel />
-            </div>
+          {/* Desktop layout */}
+          <div className="hidden lg:grid lg:grid-cols-[320px_minmax(0,1fr)]" style={{ minHeight: 680 }}>
+            <ContactsSidebar {...sidebarProps} />
+            <ConversationPanel {...convoProps} />
           </div>
         </div>
       </div>
