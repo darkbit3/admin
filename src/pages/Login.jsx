@@ -21,6 +21,7 @@ function usePhoneInput() {
 
   const onChange = (e) => {
     let v = e.target.value.replace(/\D/g, '')
+    if (v.startsWith('251')) v = v.slice(3)
     if (v.startsWith('0')) v = v.slice(1)
     if (v.length === 1 && v !== '9' && v !== '7') return
     if (v.length > 9) return
