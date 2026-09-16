@@ -98,7 +98,7 @@ export default function Chat() {
     } finally {
       setLoadingPeople(false)
     }
-  }, [selectedPersonId, selectedGroupId])
+  }, [])
 
   const fetchGroups = useCallback(async () => {
     try {
@@ -113,7 +113,7 @@ export default function Chat() {
     } finally {
       setLoadingGroups(false)
     }
-  }, [selectedPersonId, selectedGroupId])
+  }, [])
 
   useEffect(() => { fetchPeople(search) }, [search, fetchPeople])
   useEffect(() => { fetchGroups() }, [fetchGroups])
@@ -128,6 +128,7 @@ export default function Chat() {
         sender: m.isMine ? 'me' : 'them',
         text: m.message,
         time: formatTime(m.createdAt),
+        status: m.status || 'sent',
       }))
 
       const unreadCount = personId === selectedPersonId ? 0 : threadMessages.filter((m) => m.sender === 'them').length
@@ -152,6 +153,7 @@ export default function Chat() {
         text: m.message,
         time: formatTime(m.createdAt),
         senderName: m.senderRole === 'super_admin' ? 'Super Admin' : m.senderRole,
+        status: m.status || 'sent',
       }))
 
       const unreadCount = groupId === selectedGroupId ? 0 : threadMessages.filter((m) => m.sender === 'them').length
@@ -373,7 +375,14 @@ export default function Chat() {
                   <div className={`max-w-[72%] rounded-2xl px-4 py-2.5 text-sm shadow-sm mx-2 ${msg.sender === 'me' ? 'rounded-br-sm' : 'rounded-bl-sm'}`} style={{ backgroundColor: msg.sender === 'me' ? (selectedGroup ? '#10B981' : selectedPerson.isSuperAdmin ? SA_PURPLE : GOLD) : '#F5EDE0', color: msg.sender === 'me' ? '#fff' : DARK }}>
                     {selectedGroup && msg.sender !== 'me' && <p className="mb-1 text-[10px] font-semibold opacity-80">{msg.senderName || 'Group member'}</p>}
                     <p className="leading-relaxed break-words">{msg.text}</p>
-                    <p className={`mt-1 text-[10px] ${msg.sender === 'me' ? 'opacity-70' : ''}`} style={{ color: msg.sender === 'me' ? 'inherit' : '#9A8070' }}>{msg.time}</p>
+                    <div className="mt-1 flex items-center justify-between gap-2">
+                      <p className={`text-[10px] ${msg.sender === 'me' ? 'opacity-70' : ''}`} style={{ color: msg.sender === 'me' ? 'inherit' : '#9A8070' }}>{msg.time}</p>
+                      {msg.sender === 'me' && (
+                        <span className="text-[9px] font-bold" style={{ color: msg.status === 'read' ? '#fff' : 'inherit', opacity: 0.8 }}>
+                          {msg.status === 'read' ? '✓✓' : '✓'}
+                        </span>
+                      )}
+                    </div>
                   </div>
                 </div>
               ))
