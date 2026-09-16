@@ -138,25 +138,42 @@ const GroupRow = memo(function GroupRow({ group, isSelected, unreadCount, onSele
   )
 })
 
-// ── ConversationPanel — defined OUTSIDE Chat, receives all props ────────────
+// ── ConversationPanel — owns its own draft state so typing never triggers parent re-render
 const ConversationPanel = memo(function ConversationPanel({
   selectedPerson,
   selectedGroup,
   messages,
   groupMessages,
   loadingMessages,
-  draft,
-  setDraft,
   sending,
   onSend,
   onSendGroup,
   onBack,
-  inputRef,
   messagesEndRef,
 }) {
-  const activeMessages  = selectedGroup ? groupMessages : messages
-  const activeThreadName  = selectedGroup ? selectedGroup.name : selectedPerson?.name || 'Chat'
+  // draft lives HERE — typing never re-renders the parent Chat component
+  const [draft, setDraft] = useState('')
+  const inputRef = useRef(null)
+
+  // Clear draft when conversation changes
+  useEffect(() => { setDraft('') }, [selectedPerson?.id, selectedGroup?.id])
+
+  // Restore focus after send completes
+  useEffect(() => {
+    if (!sending) inputRef.current?.focus()
+  }, [sending])
+
+  const activeMessages    = selectedGroup ? groupMessages : messages
+  const activeThreadName  = selectedGroup ? selectedGroup.name  : selectedPerson?.name || 'Chat'
   const activeThreadColor = selectedGroup ? '#10B981' : selectedPerson?.isSuperAdmin ? SA_PURPLE : GOLD
+
+  const handleSend = () => {
+    const text = draft.trim()
+    if (!text || sending) return
+    setDraft('')
+    if (selectedGroup) onSendGroup(text)
+    else onSend(text)
+  }
 
   if (!selectedPerson && !selectedGroup) {
     return (
@@ -279,8 +296,7 @@ const ConversationPanel = memo(function ConversationPanel({
             onKeyDown={(e) => {
               if (e.key === 'Enter' && !e.shiftKey) {
                 e.preventDefault()
-                if (selectedGroup) onSendGroup()
-                else onSend()
+                handleSend()
               }
             }}
             placeholder={selectedGroup ? `Message ${selectedGroup.name}…` : `Message ${selectedPerson.name}…`}
@@ -289,7 +305,7 @@ const ConversationPanel = memo(function ConversationPanel({
           />
           <button
             type="button"
-            onClick={selectedGroup ? onSendGroup : onSend}
+            onClick={handleSend}
             disabled={!draft.trim() || sending}
             className="flex items-center gap-1.5 rounded-lg px-4 py-2 text-sm font-semibold transition-all disabled:opacity-40 flex-shrink-0"
             style={{ backgroundColor: sendColor, color: selectedGroup ? '#fff' : selectedPerson?.isSuperAdmin ? '#fff' : DARK }}>
@@ -455,7 +471,6 @@ export default function Chat() {
   const [unreadMap,       setUnreadMap]       = useState({})
 
   const messagesEndRef = useRef(null)
-  const inputRef       = useRef(null)
 
   // ── Data fetching ──────────────────────────────────────────────────────
   const fetchPeople = useCallback(async (query = '') => {
@@ -591,10 +606,8 @@ export default function Chat() {
     setMobileShowChat(true)
   }, [])
 
-  const sendMessage = useCallback(async () => {
-    if (!selectedPerson || !draft.trim() || sending) return
-    const text = draft.trim()
-    setDraft('')
+  const sendMessage = useCallback(async (text) => {
+    if (!selectedPerson || !text || sending) return
     setSending(true)
     setMessages((prev) => [...prev, { id: `tmp-${Date.now()}`, sender: 'me', text, time: formatTime(new Date().toISOString()) }])
     try {
@@ -608,14 +621,11 @@ export default function Chat() {
       console.error('Failed to send message', err)
     } finally {
       setSending(false)
-      inputRef.current?.focus()
     }
-  }, [selectedPerson, draft, sending, loadMessages])
+  }, [selectedPerson, sending, loadMessages])
 
-  const sendGroupMessage = useCallback(async () => {
-    if (!selectedGroupId || !draft.trim() || sending) return
-    const text = draft.trim()
-    setDraft('')
+  const sendGroupMessage = useCallback(async (text) => {
+    if (!selectedGroupId || !text || sending) return
     setSending(true)
     setGroupMessages((prev) => [...prev, { id: `tmp-${Date.now()}`, sender: 'me', text, time: formatTime(new Date().toISOString()), senderName: 'Me' }])
     try {
@@ -625,9 +635,8 @@ export default function Chat() {
       console.error('Failed to send group message', err)
     } finally {
       setSending(false)
-      inputRef.current?.focus()
     }
-  }, [selectedGroupId, draft, sending, loadGroupMessages])
+  }, [selectedGroupId, sending, loadGroupMessages])
 
   const handleBack = useCallback(() => setMobileShowChat(false), [])
 
@@ -647,12 +656,10 @@ export default function Chat() {
     selectedPerson, selectedGroup,
     messages, groupMessages,
     loadingMessages,
-    draft, setDraft,
     sending,
     onSend:      sendMessage,
     onSendGroup: sendGroupMessage,
     onBack:      handleBack,
-    inputRef,
     messagesEndRef,
   }
 
