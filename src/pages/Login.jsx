@@ -35,6 +35,16 @@ function usePhoneInput() {
 // ═══════════════════════════════════════════════════════════════════════════
 export default function Login() {
   const [tab, setTab] = useState('login')   // 'login' | 'forgot'
+  const { admin, loading } = useAuth()
+  const navigate = useNavigate()
+
+  useEffect(() => {
+    if (!loading && admin) {
+      navigate(ROUTES.DASHBOARD, { replace: true })
+    }
+  }, [admin, loading, navigate])
+
+  if (loading || admin) return null
 
   return (
     <div className="min-h-screen flex" style={{ backgroundColor: BG }}>
@@ -161,11 +171,13 @@ function LoginForm({ onForgot }) {
         </div>
 
         <button type="submit" disabled={loading}
-          className="w-full font-semibold py-2.5 rounded-lg transition-all duration-150 disabled:opacity-60"
+          className="w-full font-semibold py-2.5 rounded-lg transition-all duration-150 disabled:opacity-60 flex items-center justify-center gap-2"
           style={{ backgroundColor: DARK, color: '#F5EDE0' }}
           onMouseEnter={e => !loading && (e.currentTarget.style.backgroundColor = GOLD)}
           onMouseLeave={e => !loading && (e.currentTarget.style.backgroundColor = DARK)}>
-          {loading ? 'Signing in…' : 'Sign In'}
+          {loading
+            ? <span className="w-4 h-4 border-2 border-t-transparent border-[#F5EDE0] rounded-full animate-spin" />
+            : 'Sign In'}
         </button>
       </form>
     </div>
@@ -308,9 +320,11 @@ function ForgotFlow({ onBack }) {
           </div>
 
           <button type="submit" disabled={otpLoading}
-            className="w-full font-semibold py-2.5 rounded-lg transition-all disabled:opacity-60"
+            className="w-full font-semibold py-2.5 rounded-lg transition-all disabled:opacity-60 flex items-center justify-center gap-2"
             style={{ backgroundColor: DARK, color: '#F5EDE0' }}>
-            {otpLoading ? 'Resetting…' : 'Reset Password'}
+            {otpLoading
+              ? <span className="w-4 h-4 border-2 border-t-transparent border-[#F5EDE0] rounded-full animate-spin" />
+              : 'Reset Password'}
           </button>
 
           <button type="button" onClick={() => { setStep('phone'); setOtp(''); setNewPass(''); setConfirm(''); setOtpError('') }}
@@ -350,9 +364,11 @@ function ForgotFlow({ onBack }) {
         </div>
 
         <button type="submit" disabled={phoneLoading}
-          className="w-full font-semibold py-2.5 rounded-lg transition-all disabled:opacity-60"
+          className="w-full font-semibold py-2.5 rounded-lg transition-all disabled:opacity-60 flex items-center justify-center gap-2"
           style={{ backgroundColor: DARK, color: '#F5EDE0' }}>
-          {phoneLoading ? 'Checking…' : 'Send OTP'}
+          {phoneLoading
+            ? <span className="w-4 h-4 border-2 border-t-transparent border-[#F5EDE0] rounded-full animate-spin" />
+            : 'Send OTP'}
         </button>
 
         <button type="button" onClick={onBack}
