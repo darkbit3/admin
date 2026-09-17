@@ -99,6 +99,7 @@ const PersonRow = memo(function PersonRow({ person, colorIdx, isSelected, unread
 
 // ── GroupRow — memo ─────────────────────────────────────────────────────────
 const GroupRow = memo(function GroupRow({ group, isSelected, unreadCount, onSelect }) {
+  const catCount = group.categories?.length || 0
   return (
     <button type="button" onClick={() => onSelect(group.id)}
       className="flex w-full items-center gap-3 px-4 py-3 text-left transition-all border-b"
@@ -114,13 +115,8 @@ const GroupRow = memo(function GroupRow({ group, isSelected, unreadCount, onSele
       <div className="min-w-0 flex-1">
         <p className="truncate text-sm font-semibold mb-0.5" style={{ color: DARK }}>{group.name}</p>
         <p className="text-[11px] truncate" style={{ color: '#9A8070' }}>
-          {group.description || `Invited by ${group.invitedBy || 'Super Admin'}`}
+          {catCount > 0 ? `${catCount} categor${catCount === 1 ? 'y' : 'ies'}` : (group.description || `${group.memberCount || 0} members`)}
         </p>
-        {group.invitedBy && (
-          <p className="text-[10px] mt-1 font-medium" style={{ color: '#047857' }}>
-            Joined • invited by {group.invitedBy}
-          </p>
-        )}
       </div>
       <div className="flex items-center gap-2">
         {unreadCount > 0 && (
@@ -208,9 +204,8 @@ const ConversationPanel = memo(function ConversationPanel({
           {selectedGroup ? (
             <div className="mt-0.5 flex items-center gap-2 text-[11px]" style={{ color: '#9A8070' }}>
               <span className="inline-flex items-center px-2 py-0.5 rounded-full"
-                style={{ backgroundColor: 'rgba(16,185,129,0.10)', color: '#047857' }}>Group</span>
+                style={{ backgroundColor: 'rgba(16,185,129,0.10)', color: '#047857' }}>Fixed Group</span>
               <span>{selectedGroup.memberCount || 0} members</span>
-              {selectedGroup.invitedBy && <span>joined by {selectedGroup.invitedBy}</span>}
             </div>
           ) : (
             <div className="mt-0.5">
@@ -225,6 +220,23 @@ const ConversationPanel = memo(function ConversationPanel({
           {selectedGroup ? `${selectedGroup.memberCount || 0} members` : selectedPerson?.status || 'Active'}
         </div>
       </div>
+
+      {/* Category bar (read-only for admin) */}
+      {selectedGroup && selectedGroup.categories?.length > 0 && (
+        <div className="border-b px-4 py-2 flex-shrink-0 flex flex-wrap gap-2" style={{ borderColor: GOLD_BORDER, backgroundColor: '#FFFDF9' }}>
+          {selectedGroup.categories.map((cat) => (
+            <div key={cat.id} className="flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-semibold"
+              style={{ backgroundColor: 'rgba(200,169,110,0.10)', color: '#7A5C2E', border: `1px solid ${GOLD_BORDER}` }}>
+              {cat.image_url && (
+                <img src={cat.image_url} alt={cat.name}
+                  className="w-4 h-4 rounded-full object-cover"
+                  onError={(e) => { e.target.style.display = 'none' }} />
+              )}
+              {cat.name}
+            </div>
+          ))}
+        </div>
+      )}
 
       {/* Messages */}
       <div className="flex-1 overflow-y-auto bg-white px-5 py-4 space-y-3 min-h-0">
@@ -669,7 +681,7 @@ export default function Chat() {
         <div>
           <h1 className="text-2xl font-bold" style={{ color: DARK }}>Chat</h1>
           <p className="mt-1 text-sm" style={{ color: '#6B5D4F' }}>
-            Message your users, super admin, and invited groups
+            Message your users, super admin, and fixed groups
           </p>
         </div>
 
