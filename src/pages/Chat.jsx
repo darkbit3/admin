@@ -491,6 +491,11 @@ export default function Chat() {
       const res  = await api.get(`/chat/people${query ? `?search=${encodeURIComponent(query)}` : ''}`)
       const list = res?.data || []
       setPeople(list)
+      if (selectedPersonId && !list.some((person) => person.id === selectedPersonId)) {
+        setSelectedPersonId('')
+        setMessages([])
+        setMobileShowChat(false)
+      }
       if (!selectedPersonId && !selectedGroupId && list[0]) setSelectedPersonId(list[0].id)
     } catch (err) {
       console.error('Failed to load contacts', err)
@@ -498,7 +503,7 @@ export default function Chat() {
     } finally {
       setLoadingPeople(false)
     }
-  }, []) // eslint-disable-line react-hooks/exhaustive-deps
+  }, [selectedPersonId, selectedGroupId])
 
   const fetchGroups = useCallback(async () => {
     try {
@@ -506,13 +511,18 @@ export default function Chat() {
       const res  = await api.get('/chat/groups')
       const list = res?.data || []
       setGroups(list)
+      if (selectedGroupId && !list.some((group) => group.id === selectedGroupId)) {
+        setSelectedGroupId('')
+        setGroupMessages([])
+        setMobileShowChat(false)
+      }
     } catch (err) {
       console.error('Failed to load groups', err)
       setGroups([])
     } finally {
       setLoadingGroups(false)
     }
-  }, [])
+  }, [selectedGroupId])
 
   useEffect(() => { fetchPeople(search) }, [search]) // eslint-disable-line
   useEffect(() => { fetchGroups() },       [])       // eslint-disable-line
