@@ -59,10 +59,11 @@ function RoleBadge({ role, isSuperAdmin }) {
     Cutter:       { bg: 'rgba(168,85,247,0.10)',  text: '#7e22ce', border: 'rgba(168,85,247,0.25)' },
   }
   const c = roleColors[role] || { bg: GOLD_LIGHT, text: '#7A5C2E', border: GOLD_BORDER }
+  const displayRole = role === 'Manufacturer' ? 'Garment and Boutique' : role === 'Reseller' ? 'Textile and Accessory' : role
   return (
     <span className="inline-block text-[10px] font-semibold px-2 py-0.5 rounded-full"
       style={{ backgroundColor: c.bg, color: c.text, border: `1px solid ${c.border}` }}>
-      {role}
+      {displayRole}
     </span>
   )
 }

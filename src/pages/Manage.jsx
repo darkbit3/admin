@@ -707,7 +707,7 @@ export default function Manage() {
                   {['Manufacturer', 'Reseller'].map(r => (
                     <button key={r} type="button" onClick={() => setAddForm(f => ({ ...f, role: r }))}
                       className={`py-3 rounded-xl border text-sm font-medium transition-all min-h-[44px] ${addForm.role === r ? 'border-blue-500 bg-blue-50 text-blue-700 ring-2 ring-blue-500' : 'border-gray-200 text-gray-600 hover:bg-gray-50'}`}>
-                      {r}
+                      {r === 'Manufacturer' ? 'Garment and Boutique' : 'Textile and Accessory'}
                     </button>
                   ))}
                 </div>
@@ -770,7 +770,7 @@ export default function Manage() {
                   {['Manufacturer', 'Reseller'].map(r => (
                     <button key={r} type="button" onClick={() => setEditForm(f => ({ ...f, role: r }))}
                       className={`py-3 rounded-xl border text-sm font-medium transition-all min-h-[44px] ${editForm.role === r ? 'border-blue-500 bg-blue-50 text-blue-700 ring-2 ring-blue-500' : 'border-gray-200 text-gray-600 hover:bg-gray-50'}`}>
-                      {r}
+                      {r === 'Manufacturer' ? 'Garment and Boutique' : 'Textile and Accessory'}
                     </button>
                   ))}
                 </div>
