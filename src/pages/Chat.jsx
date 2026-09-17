@@ -150,10 +150,13 @@ const ConversationPanel = memo(function ConversationPanel({
 }) {
   // draft lives HERE — typing never re-renders the parent Chat component
   const [draft, setDraft] = useState('')
+  const [imageData, setImageData] = useState(null)
+  const [phoneInput, setPhoneInput] = useState('')
   const inputRef = useRef(null)
+  const fileInputRef = useRef(null)
 
   // Clear draft when conversation changes
-  useEffect(() => { setDraft('') }, [selectedPerson?.id, selectedGroup?.id])
+  useEffect(() => { setDraft(''); setImageData(null); setPhoneInput('') }, [selectedPerson?.id, selectedGroup?.id])
 
   // Restore focus after send completes
   useEffect(() => {
@@ -166,10 +169,21 @@ const ConversationPanel = memo(function ConversationPanel({
 
   const handleSend = () => {
     const text = draft.trim()
-    if (!text || sending) return
+    if ((!text && !imageData) || sending) return
     setDraft('')
-    if (selectedGroup) onSendGroup(text)
+    if (selectedGroup) onSendGroup(text, imageData, phoneInput.trim() || null)
     else onSend(text)
+    setImageData(null)
+    setPhoneInput('')
+  }
+
+  const handleImagePick = (event) => {
+    const file = event.target.files?.[0]
+    if (!file || !file.type.startsWith('image/') || file.size > 5 * 1024 * 1024) return
+    const reader = new FileReader()
+    reader.onload = () => setImageData(String(reader.result || ''))
+    reader.readAsDataURL(file)
+    event.target.value = ''
   }
 
   if (!selectedPerson && !selectedGroup) {
@@ -279,7 +293,9 @@ const ConversationPanel = memo(function ConversationPanel({
                 {selectedGroup && msg.sender !== 'me' && (
                   <p className="mb-1 text-[10px] font-semibold opacity-80">{msg.senderName || 'Group member'}</p>
                 )}
-                <p className="leading-relaxed break-words">{msg.text}</p>
+                {msg.imageUrl && <img src={msg.imageUrl} alt="Group post" className="mb-2 max-h-56 w-full rounded-xl object-cover" />}
+                {msg.phoneNumber && <p className="mb-1 text-xs font-semibold">Phone: {msg.phoneNumber}</p>}
+                {msg.text && <p className="leading-relaxed break-words">{msg.text}</p>}
                 <div className="mt-1 flex items-center justify-between gap-2">
                   <p className={`text-[10px] ${msg.sender === 'me' ? 'opacity-70' : ''}`}
                     style={{ color: msg.sender === 'me' ? 'inherit' : '#9A8070' }}>{msg.time}</p>
@@ -299,8 +315,17 @@ const ConversationPanel = memo(function ConversationPanel({
       {/* Input */}
       <div className="border-t px-4 py-3 flex-shrink-0"
         style={{ borderColor: GOLD_BORDER, backgroundColor: '#FFFDF9' }}>
+        {selectedGroup && imageData && <div className="mb-2 flex items-center gap-2 rounded-xl bg-emerald-50 p-2">
+          <img src={imageData} alt="Selected group post" className="h-12 w-12 rounded-lg object-cover" />
+          <input value={phoneInput} onChange={(e) => setPhoneInput(e.target.value)} placeholder="Phone number (optional)" className="flex-1 rounded-lg border border-emerald-100 bg-white px-2 py-1.5 text-xs outline-none" />
+          <button type="button" onClick={() => { setImageData(null); setPhoneInput('') }} className="text-xs text-red-600">Remove</button>
+        </div>}
         <div className="flex items-center gap-2 rounded-xl px-3 py-2"
           style={{ backgroundColor: '#F8F2EA', border: `1px solid ${GOLD_BORDER}` }}>
+          {selectedGroup && <>
+            <input ref={fileInputRef} type="file" accept="image/*" className="hidden" onChange={handleImagePick} />
+            <button type="button" onClick={() => fileInputRef.current?.click()} className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg text-emerald-700 hover:bg-emerald-100" aria-label="Add group image">+</button>
+          </>}
           <textarea
             ref={inputRef}
             rows={1}
@@ -319,7 +344,7 @@ const ConversationPanel = memo(function ConversationPanel({
           <button
             type="button"
             onClick={handleSend}
-            disabled={!draft.trim() || sending}
+            disabled={(!draft.trim() && !imageData) || sending}
             className="flex items-center gap-1.5 rounded-lg px-4 py-2 text-sm font-semibold transition-all disabled:opacity-40 flex-shrink-0"
             style={{ backgroundColor: sendColor, color: selectedGroup ? '#fff' : selectedPerson?.isSuperAdmin ? '#fff' : DARK }}>
             {sending ? (
@@ -536,6 +561,7 @@ export default function Chat() {
       const msgs = (res?.data || []).map((m) => ({
         id: m.id, sender: m.isMine ? 'me' : 'them',
         text: m.message, time: formatTime(m.createdAt), status: m.status || 'sent',
+        imageUrl: m.imageUrl || null, phoneNumber: m.phoneNumber || null,
       }))
       setMessages(msgs)
     } catch (err) {
@@ -555,6 +581,7 @@ export default function Chat() {
         id: m.id, sender: m.isMine ? 'me' : 'them',
         text: m.message, time: formatTime(m.createdAt),
         senderName: m.senderRole === 'super_admin' ? 'Super Admin' : m.senderRole,
+        imageUrl: m.imageUrl || null, phoneNumber: m.phoneNumber || null,
         status: m.status || 'sent',
       }))
       setGroupMessages(msgs)
@@ -647,12 +674,12 @@ export default function Chat() {
     }
   }, [selectedPerson, sending, loadMessages])
 
-  const sendGroupMessage = useCallback(async (text) => {
-    if (!selectedGroupId || !text || sending) return
+  const sendGroupMessage = useCallback(async (text, imageUrl = null, phoneNumber = null) => {
+    if (!selectedGroupId || (!text && !imageUrl) || sending) return
     setSending(true)
-    setGroupMessages((prev) => [...prev, { id: `tmp-${Date.now()}`, sender: 'me', text, time: formatTime(new Date().toISOString()), senderName: 'Me' }])
+    setGroupMessages((prev) => [...prev, { id: `tmp-${Date.now()}`, sender: 'me', text, imageUrl, phoneNumber, time: formatTime(new Date().toISOString()), senderName: 'Me' }])
     try {
-      await api.post(`/chat/groups/${selectedGroupId}/send`, { message: text })
+      await api.post(`/chat/groups/${selectedGroupId}/send`, { message: text, image_url: imageUrl, phone_number: phoneNumber })
       await loadGroupMessages(selectedGroupId)
     } catch (err) {
       console.error('Failed to send group message', err)
